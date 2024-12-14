@@ -17,6 +17,8 @@ struct Particle {
 
     // copy constructor
     Particle(const Particle &other) = default;
+
+    void integrate(float dt);
 };
 
 #endif

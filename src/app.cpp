@@ -78,8 +78,9 @@ void App::update() {
     // particle->acceleartion = Vec2(0.0, 9.8 * PIXELS_PER_METER);
     particle->acceleartion.x = 2.0 * PIXELS_PER_METER;
     particle->acceleartion.y = 9.8 * PIXELS_PER_METER;
-    particle->velocity += particle->acceleartion * delta_time;
-    particle->position += particle->velocity * delta_time;
+
+    // Integrate the acceleration and velocity to estimate the new position
+    particle->integrate(delta_time);
 
     if (particle->position.x - particle->radius <= 0) {
         // left border reached
