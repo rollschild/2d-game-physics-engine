@@ -2,10 +2,12 @@
 #define APP_H
 
 #include "graphics.h"
+#include "particle.h"
 
 class App {
   private:
     bool running = false;
+    Particle *particle;
 
   public:
     App() = default;
