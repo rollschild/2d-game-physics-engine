@@ -15,8 +15,13 @@ bool App::is_running() { return running; }
 void App::setup() {
     running = Graphics::open_window();
 
-    particle = new Particle(50, 100, 1.0);
-    particle->radius = 4;
+    Particle *dot = new Particle(50, 100, 1.0);
+    dot->radius = 4;
+    particles.push_back(dot);
+
+    Particle *bdot = new Particle(200, 100, 3.0);
+    bdot->radius = 12;
+    particles.push_back(bdot);
 }
 
 /**
@@ -34,6 +39,28 @@ void App::input() {
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_ESCAPE) {
                 running = false;
+            }
+            if (event.key.keysym.sym == SDLK_UP) {
+                push_force.y = -50 * PIXELS_PER_METER;
+            }
+            if (event.key.keysym.sym == SDLK_RIGHT) {
+                push_force.x = 50 * PIXELS_PER_METER;
+            }
+            if (event.key.keysym.sym == SDLK_DOWN) {
+                push_force.y = 50 * PIXELS_PER_METER;
+            }
+            if (event.key.keysym.sym == SDLK_LEFT) {
+                push_force.x = -50 * PIXELS_PER_METER;
+            }
+            break;
+        case SDL_KEYUP:
+            if (event.key.keysym.sym == SDLK_UP ||
+                event.key.keysym.sym == SDLK_DOWN) {
+                push_force.y = 0;
+            }
+            if (event.key.keysym.sym == SDLK_RIGHT ||
+                event.key.keysym.sym == SDLK_LEFT) {
+                push_force.x = 0;
             }
             break;
         }
@@ -72,33 +99,38 @@ void App::update() {
 
     // how many pixels to move _per second_
 
-    // this is only constant velocity
-    // particle->velocity = Vec2(100.0 * delta_time, 30.0 * delta_time);
+    for (auto particle : particles) {
+        Vec2 wind = Vec2(1.0 * PIXELS_PER_METER, 0.0);
+        particle->apply_force(wind);
 
-    // particle->acceleartion = Vec2(0.0, 9.8 * PIXELS_PER_METER);
-    particle->acceleartion.x = 2.0 * PIXELS_PER_METER;
-    particle->acceleartion.y = 9.8 * PIXELS_PER_METER;
+        Vec2 weight = Vec2(0.0, particle->mass * 9.8 * PIXELS_PER_METER);
+        particle->apply_force(weight);
 
-    // Integrate the acceleration and velocity to estimate the new position
-    particle->integrate(delta_time);
+        particle->apply_force(push_force);
 
-    if (particle->position.x - particle->radius <= 0) {
-        // left border reached
-        particle->position.x = particle->radius;
-        particle->velocity.x *= -0.9;
-    } else if (particle->position.x + particle->radius >= Graphics::width()) {
-        // reached right border
-        particle->position.x = Graphics::width() - particle->radius;
-        particle->velocity.x *= -0.9;
-    }
-    if (particle->position.y - particle->radius <= 0) {
-        // top border reached
-        particle->position.y = particle->radius;
-        particle->velocity.y *= -0.9;
-    } else if (particle->position.y + particle->radius >= Graphics::height()) {
-        // reached bottom border
-        particle->position.y = Graphics::height() - particle->radius;
-        particle->velocity.y *= -0.9;
+        // Integrate the acceleration and velocity to estimate the new position
+        particle->integrate(delta_time);
+
+        if (particle->position.x - particle->radius <= 0) {
+            // left border reached
+            particle->position.x = particle->radius;
+            particle->velocity.x *= -0.9;
+        } else if (particle->position.x + particle->radius >=
+                   Graphics::width()) {
+            // reached right border
+            particle->position.x = Graphics::width() - particle->radius;
+            particle->velocity.x *= -0.9;
+        }
+        if (particle->position.y - particle->radius <= 0) {
+            // top border reached
+            particle->position.y = particle->radius;
+            particle->velocity.y *= -0.9;
+        } else if (particle->position.y + particle->radius >=
+                   Graphics::height()) {
+            // reached bottom border
+            particle->position.y = Graphics::height() - particle->radius;
+            particle->velocity.y *= -0.9;
+        }
     }
 }
 
@@ -108,8 +140,12 @@ void App::update() {
 void App::render() {
     // `FF` - full opacity, no transparency
     Graphics::clear_screen(0xFF056263);
-    Graphics::draw_fill_circle(particle->position.x, particle->position.y, 4,
-                               0xFFFFFFFF); // all white circle
+    for (auto particle : particles) {
+
+        Graphics::draw_fill_circle(particle->position.x, particle->position.y,
+                                   particle->radius,
+                                   0xFFFFFFFF); // all white circle
+    }
     Graphics::render_frame();
 }
 
@@ -117,6 +153,8 @@ void App::render() {
  * Destroy function to delete objects and close the window
  */
 void App::destroy() {
-    delete particle;
+    for (auto particle : particles) {
+        delete particle;
+    }
     Graphics::close_window();
 }
