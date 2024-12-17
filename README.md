@@ -39,4 +39,5 @@
 - **Friction**
   - **kinetic friction**
   - **static friction**
+- **jerk** - rate of change of acceleration
 -
