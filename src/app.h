@@ -4,6 +4,7 @@
 #include "graphics.h"
 #include "particle.h"
 #include "vec2.h"
+#include <SDL2/SDL_rect.h>
 #include <vector>
 
 class App {
@@ -12,6 +13,8 @@ class App {
     std::vector<Particle *> particles;
 
     Vec2 push_force = Vec2(0, 0); // controlled by keyboard
+
+    SDL_Rect liquid;
 
   public:
     App() = default;

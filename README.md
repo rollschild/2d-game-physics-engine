@@ -33,4 +33,10 @@
   - a family of integrators
   - **RK4** is the most popular
     - very accurate
+- **Drag Force**
+  - resistive force
+  - depends on velocity
+- **Friction**
+  - **kinetic friction**
+  - **static friction**
 -

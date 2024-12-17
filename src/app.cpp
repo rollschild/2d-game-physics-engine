@@ -1,10 +1,12 @@
 #include "app.h"
 #include "constants.h"
+#include "force.h"
 #include "graphics.h"
 #include "particle.h"
 #include "vec2.h"
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mouse.h>
 #include <SDL2/SDL_timer.h>
 
 bool App::is_running() { return running; }
@@ -22,6 +24,11 @@ void App::setup() {
     Particle *bdot = new Particle(200, 100, 3.0);
     bdot->radius = 12;
     particles.push_back(bdot);
+
+    liquid.x = 0;
+    liquid.y = Graphics::height() / 2;
+    liquid.w = Graphics::width();
+    liquid.h = Graphics::height() / 2;
 }
 
 /**
@@ -63,6 +70,18 @@ void App::input() {
                 push_force.x = 0;
             }
             break;
+        // case SDL_MOUSEMOTION:
+        // mouseCursor.x = event.motion.x;
+        // mouseCursor.y = event.motion.y;
+        case SDL_MOUSEBUTTONDOWN:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                Particle *particle = new Particle(x, y, 1.0);
+                particle->radius = 5;
+                particles.push_back(particle);
+            }
+            break;
         }
     }
 }
@@ -100,13 +119,23 @@ void App::update() {
     // how many pixels to move _per second_
 
     for (auto particle : particles) {
-        Vec2 wind = Vec2(1.0 * PIXELS_PER_METER, 0.0);
-        particle->apply_force(wind);
+        // Vec2 wind = Vec2(1.0 * PIXELS_PER_METER, 0.0);
+        // particle->apply_force(wind);
 
-        Vec2 weight = Vec2(0.0, particle->mass * 9.8 * PIXELS_PER_METER);
-        particle->apply_force(weight);
+        // Vec2 weight = Vec2(0.0, particle->mass * 9.8 * PIXELS_PER_METER);
+        // particle->apply_force(weight);
 
         particle->apply_force(push_force);
+
+        Vec2 friction =
+            Force::generate_firction_force(*particle, 10.0 * PIXELS_PER_METER);
+        particle->apply_force(friction);
+
+        // apply drag forces when in liquid
+        if (particle->position.y >= liquid.y) {
+            Vec2 drag = Force::generate_drag_force(*particle, 0.03);
+            particle->apply_force(drag);
+        }
 
         // Integrate the acceleration and velocity to estimate the new position
         particle->integrate(delta_time);
@@ -140,6 +169,11 @@ void App::update() {
 void App::render() {
     // `FF` - full opacity, no transparency
     Graphics::clear_screen(0xFF056263);
+
+    // draw liquid
+    Graphics::draw_fill_rect(liquid.x + liquid.w / 2, liquid.y + liquid.h / 2,
+                             liquid.w, liquid.h, 0xFF6E3713);
+
     for (auto particle : particles) {
 
         Graphics::draw_fill_circle(particle->position.x, particle->position.y,
