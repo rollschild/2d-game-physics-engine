@@ -29,6 +29,7 @@
 - **Verlet Integration**
   - better accuracy than **implicit Euler**
   - less memory usage when simulating a large number of particles
+  - best suited for simulating particles and constraints between particles
 - **Runge-Kutta Integration**
   - a family of integrators
   - **RK4** is the most popular
@@ -41,4 +42,3 @@
   - **static friction**
 - **jerk** - rate of change of acceleration
 - **Spring Force**
-  -
