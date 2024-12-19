@@ -1,16 +1,16 @@
-#ifndef APP_H
-#define APP_H
+#ifndef APP_RIGID_BODY_H
+#define APP_RIGID_BODY_H
 
+#include "body.h"
 #include "graphics.h"
-#include "particle.h"
 #include "vec2.h"
 #include <SDL2/SDL_rect.h>
 #include <vector>
 
-class App {
+class AppRigidBody {
   private:
     bool running = false;
-    std::vector<Particle *> particles;
+    std::vector<Body *> bodies;
 
     Vec2 push_force = Vec2(0, 0); // controlled by keyboard
     Vec2 mouse_cursor = Vec2(0, 0);
@@ -23,12 +23,12 @@ class App {
     float rest_soft_body_length = 200;
     float k_chain = 300;
     float k_soft_body = 1500;
-    const int NUM_CHAINED_PARTICLES = 15;
-    const int NUM_SOFT_BODY_PARTICLES = 4;
+    const int NUM_CHAINED_BODIES = 15;
+    const int NUM_SOFT_BODY_BODIES = 4;
 
   public:
-    App() = default;
-    ~App() = default;
+    AppRigidBody() = default;
+    ~AppRigidBody() = default;
     bool is_running();
     void setup();
     void input();

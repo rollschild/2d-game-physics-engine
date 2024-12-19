@@ -1,7 +1,7 @@
-#include "app.h"
+#include "app_particle.h"
 
 int main(/* int argc, char *args[] */) {
-    App app;
+    AppParticle app;
     app.setup();
 
     while (app.is_running()) {
