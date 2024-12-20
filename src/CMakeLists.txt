@@ -10,4 +10,5 @@ target_sources(
           particle.cpp
           force.cpp
           app_rigid_body.cpp
+          shape.cpp
           body.cpp)
