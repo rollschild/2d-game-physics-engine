@@ -21,9 +21,11 @@ void AppRigidBody::setup() {
 
     // CircleShape(50) is on stack, which will go out of scope once this setup
     // function ends thus we need the `.clone()` method
-    Body *body = new Body(CircleShape(50), Graphics::width() / 2.0,
-                          Graphics::height() / 2.0, 1.0);
-    bodies.push_back(body);
+    // Body *body = new Body(CircleShape(50), Graphics::width() / 2.0,
+    // Graphics::height() / 2.0, 1.0);
+    Body *box = new Body(BoxShape(200, 100), Graphics::width() / 2.0,
+                         Graphics::height() / 2.0, 1.0);
+    bodies.push_back(box);
 }
 
 /**
@@ -134,12 +136,15 @@ void AppRigidBody::update() {
     }
 
     for (auto body : bodies) {
-        Vec2 weight = Vec2(0.0, body->mass * 9.8 * PIXELS_PER_METER);
-        body->apply_force(weight);
+        // Vec2 weight = Vec2(0.0, body->mass * 9.8 * PIXELS_PER_METER);
+        // body->apply_force(weight);
+
+        float torque = 200;
+        body->apply_torque(torque);
     }
 
     for (auto body : bodies) {
-        body->integrate(delta_time);
+        body->update(delta_time);
     }
 
     for (auto body : bodies) {
@@ -176,8 +181,6 @@ void AppRigidBody::render() {
     // `FF` - full opacity, no transparency
     Graphics::clear_screen(0xFF056263);
 
-    static float angle = 0.0;
-
     for (auto body : bodies) {
         if (body->shape->get_type() == CIRCLE) {
             CircleShape *circle_shape = (CircleShape *)body->shape;
@@ -186,11 +189,15 @@ void AppRigidBody::render() {
 
             // rotation
             Graphics::draw_circle(body->position.x, body->position.y,
-                                  circle_shape->radius, angle, 0xFFFFFFFF);
+                                  circle_shape->radius, body->rotation,
+                                  0xFFFFFFFF);
+        }
+        if (body->shape->get_type() == BOX) {
+            BoxShape *box_shape = (BoxShape *)body->shape;
+            Graphics::draw_polygon(body->position.x, body->position.y,
+                                   box_shape->world_vertices, 0xFFFFFFFF);
         }
     }
-
-    angle += 0.01;
 
     Graphics::render_frame();
 }

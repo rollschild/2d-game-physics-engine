@@ -42,3 +42,13 @@
   - **static friction**
 - **jerk** - rate of change of acceleration
 - **Spring Force**
+- **Angular Velocity**
+  - **theta** - angle
+  - **omega** - angular velocity
+  - **alpha** - angular acceleration
+- Initiate angular movement by applying **torque**
+- **Moment of Intertia**
+  - $I_{solidcircle} = (r^2 / 2) * m$
+  - $I_{solidrectangle} = ((w^2 + h^2) / 12) * m$
+- **local space** vs. **world space**
+-
