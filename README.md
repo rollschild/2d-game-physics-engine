@@ -51,4 +51,19 @@
   - $I_{solidcircle} = (r^2 / 2) * m$
   - $I_{solidrectangle} = ((w^2 + h^2) / 12) * m$
 - **local space** vs. **world space**
+- **Collision**
+  - Steps:
+    1. Collision detection - shape-specific
+    2. Collision resolution - agnostic to shape
+- Techniques of collision detection
+  - **broad phase**
+    - use bounding circles/boxes
+  - **narrow phase**
+- **projection method** vs. **impulse method** vs. **penalty method**
+  - **projection method**: adjust position of the colliding objects
+  - **impulse method**: adjust velocity of colliding objects by apply impulses
+  - **penalty method**: adjust acceleration of colliding objects
+- **projection method**
+  - $d_{a} = depth * (m_b / (m_a + m_b))$
+  - $d_{b} = depth * (m_a / (m_a + m_b))$
 -

@@ -2,6 +2,7 @@
 #include "shape.h"
 #include "vec2.h"
 #include <iostream>
+#include <math.h>
 
 // Remember to initialize the member variables in the _same_ order that they are
 // declared. Otherwise you will get those `-Werror=reorder` compile errors
@@ -31,6 +32,10 @@ void Body::clear_forces() { sum_forces = Vec2(0.0, 0.0); }
 void Body::clear_torque() { sum_torque = 0.0; }
 
 void Body::integrate_linear(float dt) {
+    if (is_static()) {
+        return;
+    }
+
     acceleartion = sum_forces * inv_mass;
 
     velocity += acceleartion * dt;
@@ -40,6 +45,10 @@ void Body::integrate_linear(float dt) {
 }
 
 void Body::integrate_angular(float dt) {
+    if (is_static()) {
+        return;
+    }
+
     angular_acc = sum_torque * inv_I;
 
     angular_vel += angular_acc * dt;
@@ -57,4 +66,10 @@ void Body::update(float dt) {
         PolygonShape *polygon_shape = (PolygonShape *)shape;
         polygon_shape->update_vertices(rotation, position);
     }
+}
+
+bool Body::is_static() const {
+    // PAY ATTENTION when comparing floating points!
+    const float epsilon = 0.005f;
+    return fabs(inv_mass - 0.0) < epsilon;
 }

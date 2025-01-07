@@ -11,4 +11,5 @@ target_sources(
           force.cpp
           app_rigid_body.cpp
           shape.cpp
-          body.cpp)
+          body.cpp
+          collision_detection.cpp)

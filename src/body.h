@@ -5,6 +5,8 @@
 #include "vec2.h"
 
 struct Body {
+    bool is_colliding = false;
+
     // linear motion
     Vec2 position;
     Vec2 velocity;
@@ -42,6 +44,8 @@ struct Body {
     void integrate_angular(float dt);
 
     void update(float dt);
+
+    bool is_static() const;
 };
 
 #endif

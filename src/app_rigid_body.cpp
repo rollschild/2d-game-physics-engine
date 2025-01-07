@@ -1,6 +1,8 @@
 #include "app_rigid_body.h"
 #include "body.h"
+#include "collision_detection.h"
 #include "constants.h"
+#include "contact.h"
 #include "force.h"
 #include "graphics.h"
 #include "shape.h"
@@ -8,6 +10,7 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
+#include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_timer.h>
 #include <vector>
 
@@ -23,9 +26,17 @@ void AppRigidBody::setup() {
     // function ends thus we need the `.clone()` method
     // Body *body = new Body(CircleShape(50), Graphics::width() / 2.0,
     // Graphics::height() / 2.0, 1.0);
+
+    /*
     Body *box = new Body(BoxShape(200, 100), Graphics::width() / 2.0,
                          Graphics::height() / 2.0, 1.0);
-    bodies.push_back(box);
+    */
+
+    Body *big_ball = new Body(CircleShape(100), 100, 100, 1.0);
+    Body *small_ball = new Body(CircleShape(50), 500, 100, 1.0);
+
+    bodies.push_back(big_ball);
+    bodies.push_back(small_ball);
 }
 
 /**
@@ -67,10 +78,10 @@ void AppRigidBody::input() {
                 push_force.x = 0;
             }
             break;
-        case SDL_MOUSEMOTION:
-            mouse_cursor.x = event.motion.x;
-            mouse_cursor.y = event.motion.y;
-            break;
+        // case SDL_MOUSEMOTION:
+        // mouse_cursor.x = event.motion.x;
+        // mouse_cursor.y = event.motion.y;
+        // break;
         case SDL_MOUSEBUTTONDOWN:
             if (!left_mouse_button_down &&
                 event.button.button == SDL_BUTTON_LEFT) {
@@ -87,6 +98,12 @@ void AppRigidBody::input() {
                 left_mouse_button_down = false;
             }
             break;
+        case SDL_MOUSEMOTION:
+            int x, y;
+            SDL_GetMouseState(&x, &y);
+            bodies[0]->position.x = x;
+            bodies[0]->position.y = y;
+            break;
         }
     }
 }
@@ -95,6 +112,9 @@ void AppRigidBody::input() {
  * Update function (called several times per second to update objects)
  */
 void AppRigidBody::update() {
+    // clear screen here, instead of in `render` function
+    Graphics::clear_screen(0xFF056263);
+
     // Check if we are too fast; if so, wait for some milliseconds,
     // until we reach the MS_PER_FRAME
     static int time_previous_frame;
@@ -135,16 +155,54 @@ void AppRigidBody::update() {
         bodies[bodies.size() - 1]->apply_force(push_force);
     }
 
+    /*
     for (auto body : bodies) {
         // Vec2 weight = Vec2(0.0, body->mass * 9.8 * PIXELS_PER_METER);
         // body->apply_force(weight);
 
-        float torque = 200;
-        body->apply_torque(torque);
+        // Torque
+        // float torque = 200;
+        // body->apply_torque(torque);
+
+        // wind
+        // Vec2 wind = Vec2(20.0 * PIXELS_PER_METER, 0.0);
+        // body->apply_force(wind);
     }
+    */
 
     for (auto body : bodies) {
         body->update(delta_time);
+    }
+
+    for (auto body : bodies) {
+        body->is_colliding = false;
+    }
+
+    // Collision detection
+    // check all rigidbodies with other rigidbodies
+    for (size_t i = 0; i <= bodies.size() - 1; i++) {
+        for (size_t j = i + 1; j < bodies.size(); j++) {
+            Body *a = bodies[i];
+            Body *b = bodies[j];
+
+            Contact contact;
+
+            // check bodies[i] with bodies[j]
+            if (CollisionDetection::is_colliding(a, b, contact)) {
+                Graphics::draw_fill_circle(contact.start.x, contact.start.y, 3,
+                                           0xFFFF00FF);
+                Graphics::draw_fill_circle(contact.end.x, contact.end.y, 3,
+                                           0xFFFF00FF);
+                // only draw 15px of the line between two contact points
+                Graphics::draw_line(contact.start.x, contact.start.y,
+                                    contact.normal.x * 15 + contact.start.x,
+                                    contact.normal.y * 15 + contact.start.y,
+                                    0xFFFF00FF);
+                // collision!
+                a->is_colliding = true;
+                b->is_colliding = true;
+            }
+        }
     }
 
     for (auto body : bodies) {
@@ -179,9 +237,10 @@ void AppRigidBody::update() {
  */
 void AppRigidBody::render() {
     // `FF` - full opacity, no transparency
-    Graphics::clear_screen(0xFF056263);
+    // Graphics::clear_screen(0xFF056263);
 
     for (auto body : bodies) {
+        Uint32 color = body->is_colliding ? 0xFF0000FF : 0xFFFFFFFF;
         if (body->shape->get_type() == CIRCLE) {
             CircleShape *circle_shape = (CircleShape *)body->shape;
             // Graphics::draw_fill_circle(body->position.x, body->position.y,
@@ -189,8 +248,7 @@ void AppRigidBody::render() {
 
             // rotation
             Graphics::draw_circle(body->position.x, body->position.y,
-                                  circle_shape->radius, body->rotation,
-                                  0xFFFFFFFF);
+                                  circle_shape->radius, body->rotation, color);
         }
         if (body->shape->get_type() == BOX) {
             BoxShape *box_shape = (BoxShape *)body->shape;
