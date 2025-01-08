@@ -21,6 +21,7 @@ struct Contact {
     Contact(const Contact &other) = default;
 
     void resolve_penetration();
+    void resolve_collision();
 };
 
 #endif

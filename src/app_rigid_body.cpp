@@ -32,11 +32,12 @@ void AppRigidBody::setup() {
                          Graphics::height() / 2.0, 1.0);
     */
 
-    Body *big_ball = new Body(CircleShape(100), 100, 100, 1.0);
-    Body *small_ball = new Body(CircleShape(50), 500, 100, 1.0);
+    Body *big_ball = new Body(CircleShape(200), Graphics::width() / 2.0,
+                              Graphics::height() / 2.0, 0.0);
+    // Body *small_ball = new Body(CircleShape(50), 500, 100, 1.0);
 
     bodies.push_back(big_ball);
-    bodies.push_back(small_ball);
+    // bodies.push_back(small_ball);
 }
 
 /**
@@ -78,10 +79,13 @@ void AppRigidBody::input() {
                 push_force.x = 0;
             }
             break;
-        // case SDL_MOUSEMOTION:
-        // mouse_cursor.x = event.motion.x;
-        // mouse_cursor.y = event.motion.y;
-        // break;
+        /*
+        case SDL_MOUSEMOTION:
+            mouse_cursor.x = event.motion.x;
+            mouse_cursor.y = event.motion.y;
+            break;
+        */
+        /*
         case SDL_MOUSEBUTTONDOWN:
             if (!left_mouse_button_down &&
                 event.button.button == SDL_BUTTON_LEFT) {
@@ -92,6 +96,8 @@ void AppRigidBody::input() {
                 mouse_cursor.y = y;
             }
             break;
+        */
+        /*
         case SDL_MOUSEBUTTONUP:
             if (left_mouse_button_down &&
                 event.button.button == SDL_BUTTON_LEFT) {
@@ -103,6 +109,14 @@ void AppRigidBody::input() {
             SDL_GetMouseState(&x, &y);
             bodies[0]->position.x = x;
             bodies[0]->position.y = y;
+            break;
+        */
+        case SDL_MOUSEBUTTONDOWN:
+            int x, y;
+            SDL_GetMouseState(&x, &y);
+            Body *small_ball = new Body(CircleShape(40), x, y, 1.0);
+            small_ball->restitution = 0.9;
+            bodies.push_back(small_ball);
             break;
         }
     }
@@ -155,20 +169,18 @@ void AppRigidBody::update() {
         bodies[bodies.size() - 1]->apply_force(push_force);
     }
 
-    /*
     for (auto body : bodies) {
-        // Vec2 weight = Vec2(0.0, body->mass * 9.8 * PIXELS_PER_METER);
-        // body->apply_force(weight);
+        Vec2 weight = Vec2(0.0, body->mass * 9.8 * PIXELS_PER_METER);
+        body->apply_force(weight);
 
         // Torque
         // float torque = 200;
         // body->apply_torque(torque);
 
         // wind
-        // Vec2 wind = Vec2(20.0 * PIXELS_PER_METER, 0.0);
-        // body->apply_force(wind);
+        Vec2 wind = Vec2(2.0 * PIXELS_PER_METER, 0.0);
+        body->apply_force(wind);
     }
-    */
 
     for (auto body : bodies) {
         body->update(delta_time);
@@ -189,6 +201,8 @@ void AppRigidBody::update() {
 
             // check bodies[i] with bodies[j]
             if (CollisionDetection::is_colliding(a, b, contact)) {
+                contact.resolve_collision();
+
                 Graphics::draw_fill_circle(contact.start.x, contact.start.y, 3,
                                            0xFFFF00FF);
                 Graphics::draw_fill_circle(contact.end.x, contact.end.y, 3,
@@ -243,12 +257,12 @@ void AppRigidBody::render() {
         Uint32 color = body->is_colliding ? 0xFF0000FF : 0xFFFFFFFF;
         if (body->shape->get_type() == CIRCLE) {
             CircleShape *circle_shape = (CircleShape *)body->shape;
-            // Graphics::draw_fill_circle(body->position.x, body->position.y,
-            // circle_shape->radius, 0xFFFFFFFF);
+            Graphics::draw_fill_circle(body->position.x, body->position.y,
+                                       circle_shape->radius, color);
 
             // rotation
-            Graphics::draw_circle(body->position.x, body->position.y,
-                                  circle_shape->radius, body->rotation, color);
+            // Graphics::draw_circle(body->position.x, body->position.y,
+            // circle_shape->radius, body->rotation, color);
         }
         if (body->shape->get_type() == BOX) {
             BoxShape *box_shape = (BoxShape *)body->shape;

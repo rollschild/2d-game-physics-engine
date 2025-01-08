@@ -9,7 +9,7 @@
 Body::Body(const Shape &shape, float x, float y, float mass)
     : position(Vec2(x, y)), velocity(Vec2(0, 0)), acceleartion(Vec2(0, 0)),
       rotation(0.0), angular_vel(0.0), angular_acc(0.0), sum_forces(Vec2(0, 0)),
-      sum_torque(0.0), mass(mass), shape(shape.clone()) {
+      sum_torque(0.0), mass(mass), restitution(1.0), shape(shape.clone()) {
     inv_mass = mass != 0.0 ? (1.0 / mass) : 0.0;
 
     I = this->shape->get_moment_of_inertia() * mass;
@@ -72,4 +72,15 @@ bool Body::is_static() const {
     // PAY ATTENTION when comparing floating points!
     const float epsilon = 0.005f;
     return fabs(inv_mass - 0.0) < epsilon;
+}
+
+/*
+ * Δv = J / m
+ */
+void Body::apply_impulse(const Vec2 &j) {
+    if (is_static()) {
+        return;
+    }
+
+    velocity += j * inv_mass;
 }

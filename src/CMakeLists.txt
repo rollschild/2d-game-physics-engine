@@ -12,4 +12,5 @@ target_sources(
           app_rigid_body.cpp
           shape.cpp
           body.cpp
-          collision_detection.cpp)
+          collision_detection.cpp
+          contact.cpp)

@@ -66,4 +66,8 @@
 - **projection method**
   - $d_{a} = depth * (m_b / (m_a + m_b))$
   - $d_{b} = depth * (m_a / (m_a + m_b))$
--
+- **Momentum**
+  - **conservation of momentum**
+- **Impulse** - change in momentum by performing a direct change in velocity
+  - $J = F * Δt = ΔP = mv' - mv = mΔv$
+  - $Jn$ - impulse vector

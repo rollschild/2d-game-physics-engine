@@ -27,6 +27,9 @@ struct Body {
     float I;
     float inv_I;
 
+    // coefficient of restitution (elasticity)
+    float restitution;
+
     Shape *shape = nullptr;
 
     Body(const Shape &shape, float x, float y, float m);
@@ -46,6 +49,7 @@ struct Body {
     void update(float dt);
 
     bool is_static() const;
+    void apply_impulse(const Vec2 &j);
 };
 
 #endif
