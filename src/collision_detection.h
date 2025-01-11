@@ -3,10 +3,13 @@
 
 #include "body.h"
 #include "contact.h"
+#include "shape.h"
 
 struct CollisionDetection {
     static bool is_colliding(Body *a, Body *b, Contact &contact);
     static bool is_colliding_circle_circle(Body *a, Body *b, Contact &contact);
+    static bool is_colliding_polygon_polygon(Body *a, Body *b,
+                                             Contact &contact);
 };
 
 #endif

@@ -32,12 +32,19 @@ void AppRigidBody::setup() {
                          Graphics::height() / 2.0, 1.0);
     */
 
-    Body *big_ball = new Body(CircleShape(200), Graphics::width() / 2.0,
-                              Graphics::height() / 2.0, 0.0);
+    // Body *big_ball = new Body(CircleShape(200), Graphics::width() / 2.0,
+    // Graphics::height() / 2.0, 0.0);
     // Body *small_ball = new Body(CircleShape(50), 500, 100, 1.0);
 
-    bodies.push_back(big_ball);
-    // bodies.push_back(small_ball);
+    Body *box_a = new Body(BoxShape(200, 200), Graphics::width() / 2.0,
+                           Graphics::height() / 2.0, 1.0);
+    Body *box_b = new Body(BoxShape(200, 200), Graphics::width() / 2.0,
+                           Graphics::height() / 2.0, 1.0);
+    box_a->angular_vel = 0.4;
+    box_b->angular_vel = 0.1;
+
+    bodies.push_back(box_a);
+    bodies.push_back(box_b);
 }
 
 /**
@@ -79,12 +86,12 @@ void AppRigidBody::input() {
                 push_force.x = 0;
             }
             break;
-        /*
         case SDL_MOUSEMOTION:
-            mouse_cursor.x = event.motion.x;
-            mouse_cursor.y = event.motion.y;
+            int a, b;
+            SDL_GetMouseState(&a, &b);
+            bodies[0]->position.x = a;
+            bodies[0]->position.y = b;
             break;
-        */
         /*
         case SDL_MOUSEBUTTONDOWN:
             if (!left_mouse_button_down &&
@@ -169,6 +176,7 @@ void AppRigidBody::update() {
         bodies[bodies.size() - 1]->apply_force(push_force);
     }
 
+    /*
     for (auto body : bodies) {
         Vec2 weight = Vec2(0.0, body->mass * 9.8 * PIXELS_PER_METER);
         body->apply_force(weight);
@@ -181,6 +189,7 @@ void AppRigidBody::update() {
         Vec2 wind = Vec2(2.0 * PIXELS_PER_METER, 0.0);
         body->apply_force(wind);
     }
+    */
 
     for (auto body : bodies) {
         body->update(delta_time);
@@ -201,7 +210,8 @@ void AppRigidBody::update() {
 
             // check bodies[i] with bodies[j]
             if (CollisionDetection::is_colliding(a, b, contact)) {
-                contact.resolve_collision();
+                // TODO
+                // contact.resolve_collision();
 
                 Graphics::draw_fill_circle(contact.start.x, contact.start.y, 3,
                                            0xFFFF00FF);
@@ -267,7 +277,7 @@ void AppRigidBody::render() {
         if (body->shape->get_type() == BOX) {
             BoxShape *box_shape = (BoxShape *)body->shape;
             Graphics::draw_polygon(body->position.x, body->position.y,
-                                   box_shape->world_vertices, 0xFFFFFFFF);
+                                   box_shape->world_vertices, color);
         }
     }
 

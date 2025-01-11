@@ -38,6 +38,10 @@ struct PolygonShape : public Shape {
 
     float get_moment_of_inertia() const override;
 
+    Vec2 edge_at(const int index) const;
+    float find_min_separation(const PolygonShape *other, Vec2 &axis,
+                              Vec2 &point) const;
+
     // rotate/translate polygon vertices from local space to world space
     void update_vertices(float rotation, const Vec2 &position);
 };

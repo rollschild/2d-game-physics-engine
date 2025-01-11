@@ -71,3 +71,15 @@
 - **Impulse** - change in momentum by performing a direct change in velocity
   - $J = F * Δt = ΔP = mv' - mv = mΔv$
   - $Jn$ - impulse vector
+- **AABB**
+- **Separating Axis Theorem (SAT)**
+  - _ONLY_ works for **convex polygons**
+    - compared to **concave polygon**
+  - one of the most popular collision detection algos for rigid bodies
+  - with **GJK** algorithm
+    - works for both convex & concave
+- **Oriented Bounding Box (OBB)**
+  - if there is _at least one axis_ that separates both shapes, then they are _not_ colliding
+- **Support Point**
+  - vertex in the second polygon that is furthest away _behind_ a certain edge of the first polygon
+-

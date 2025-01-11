@@ -1,6 +1,7 @@
 #include "shape.h"
 #include "vec2.h"
 #include <iostream>
+#include <limits>
 #include <vector>
 
 CircleShape::CircleShape(float radius) : radius(radius) {
@@ -46,6 +47,50 @@ void PolygonShape::update_vertices(float angle, const Vec2 &position) {
         // then, translate
         world_vertices[i] += position;
     }
+}
+
+Vec2 PolygonShape::edge_at(const int index) const {
+    int curr_vertex = index;
+    int next_vertex = (index + 1) % world_vertices.size();
+
+    return world_vertices[next_vertex] - world_vertices[curr_vertex];
+}
+
+float PolygonShape::find_min_separation(const PolygonShape *other, Vec2 &axis,
+                                        Vec2 &point) const {
+    // Loop all vertices of a
+    //   - find normal axis (perpendicular)
+    //   - loop all vertices of b
+    //     - project vertex b onto the normal axis
+    //     - keep track of the min separation
+    // Return the best separation out of all axis
+    float separation = std::numeric_limits<float>::lowest();
+    // separation is also negative collision depth
+
+    for (size_t i = 0; i < this->world_vertices.size(); i++) {
+        Vec2 va = this->world_vertices[i];
+        Vec2 normal = this->edge_at(i).normal();
+        float min_sep = std::numeric_limits<float>::max();
+        Vec2 min_vertex;
+
+        for (size_t j = 0; j < other->world_vertices.size(); j++) {
+            Vec2 vb = other->world_vertices[j];
+            float proj = (vb - va).dot(normal);
+            if (proj < min_sep) {
+                min_sep = proj;
+                min_vertex = vb;
+            }
+            min_sep = std::min(min_sep, (vb - va).dot(normal));
+        }
+
+        if (separation < min_sep) {
+            separation = min_sep;
+            axis = this->edge_at(i);
+            point = min_vertex;
+        }
+    }
+
+    return separation;
 }
 
 BoxShape::BoxShape(float width, float height) : width(width), height(height) {
