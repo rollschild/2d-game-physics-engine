@@ -9,7 +9,8 @@
 Body::Body(const Shape &shape, float x, float y, float mass)
     : position(Vec2(x, y)), velocity(Vec2(0, 0)), acceleartion(Vec2(0, 0)),
       rotation(0.0), angular_vel(0.0), angular_acc(0.0), sum_forces(Vec2(0, 0)),
-      sum_torque(0.0), mass(mass), restitution(1.0), shape(shape.clone()) {
+      sum_torque(0.0), mass(mass), restitution(1.0), friction(0.7),
+      shape(shape.clone()) {
     inv_mass = mass != 0.0 ? (1.0 / mass) : 0.0;
 
     I = this->shape->get_moment_of_inertia() * mass;
@@ -83,4 +84,14 @@ void Body::apply_impulse(const Vec2 &j) {
     }
 
     velocity += j * inv_mass;
+}
+
+// changes both linear and angular velocity
+void Body::apply_impulse(const Vec2 &j, const Vec2 &r) {
+    if (is_static()) {
+        return;
+    }
+
+    velocity += j * inv_mass;
+    angular_vel += r.cross(j) * inv_I;
 }

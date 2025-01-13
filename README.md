@@ -82,4 +82,7 @@
   - if there is _at least one axis_ that separates both shapes, then they are _not_ colliding
 - **Support Point**
   - vertex in the second polygon that is furthest away _behind_ a certain edge of the first polygon
+- **linear point velocity** with rotation
+- **impulse along the tangent**
+  - similar to **friction**
 -

@@ -29,6 +29,8 @@ struct Body {
 
     // coefficient of restitution (elasticity)
     float restitution;
+    // coefficient of friction
+    float friction;
 
     Shape *shape = nullptr;
 
@@ -49,7 +51,15 @@ struct Body {
     void update(float dt);
 
     bool is_static() const;
+
+    /**
+     * Linear impulse, applied at center of mass
+     */
     void apply_impulse(const Vec2 &j);
+    /**
+     * Both linear and angular impulse, applied at point of contact
+     */
+    void apply_impulse(const Vec2 &j, const Vec2 &r);
 };
 
 #endif
