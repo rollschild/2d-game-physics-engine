@@ -85,4 +85,5 @@
 - **linear point velocity** with rotation
 - **impulse along the tangent**
   - similar to **friction**
--
+- Polygon-Circle Collision
+  1. compute the nearest edge (closet to center of circle)

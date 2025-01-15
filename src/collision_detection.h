@@ -10,6 +10,8 @@ struct CollisionDetection {
     static bool is_colliding_circle_circle(Body *a, Body *b, Contact &contact);
     static bool is_colliding_polygon_polygon(Body *a, Body *b,
                                              Contact &contact);
+    static bool is_colliding_polygon_circle(Body *polygon, Body *circle,
+                                            Contact &contact);
 };
 
 #endif

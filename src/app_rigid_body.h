@@ -9,6 +9,7 @@
 
 class AppRigidBody {
   private:
+    bool debug = false;
     bool running = false;
     std::vector<Body *> bodies;
 

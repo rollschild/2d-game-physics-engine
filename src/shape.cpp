@@ -36,7 +36,7 @@ Shape *PolygonShape::clone() const { return new PolygonShape(local_vertices); }
 
 float PolygonShape::get_moment_of_inertia() const {
     // TODO
-    return 0.0;
+    return 5000;
 }
 
 void PolygonShape::update_vertices(float angle, const Vec2 &position) {

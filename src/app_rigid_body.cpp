@@ -48,7 +48,7 @@ void AppRigidBody::setup() {
     Body *floor =
         new Body(BoxShape(Graphics::width() - 100, 50), Graphics::width() / 2.0,
                  Graphics::height() - 25, 0.0);
-    floor->restitution = 0.2;
+    floor->restitution = 0.5;
     Body *left_wall = new Body(BoxShape(50, Graphics::height()), 25,
                                Graphics::height() / 2.0, 0.0);
     left_wall->restitution = 0.2;
@@ -62,8 +62,13 @@ void AppRigidBody::setup() {
 
     Body *big_box = new Body(BoxShape(200, 200), Graphics::width() / 2.0,
                              Graphics::height() / 2.0, 0.0);
-    big_box->restitution = 0.2;
+    big_box->restitution = 0.7;
     big_box->rotation = 1.4;
+
+    // Body *ball = new Body(CircleShape(50), Graphics::width() / 2.0,
+    // Graphics::height() / 2.0, 1.0);
+    // ball->restitution = 0.1;
+
     bodies.push_back(big_box);
 }
 
@@ -95,6 +100,9 @@ void AppRigidBody::input() {
             if (event.key.keysym.sym == SDLK_LEFT) {
                 push_force.x = -50 * PIXELS_PER_METER;
             }
+            if (event.key.keysym.sym == SDLK_d) {
+                debug = !debug;
+            }
             break;
         case SDL_KEYUP:
             if (event.key.keysym.sym == SDLK_UP ||
@@ -106,54 +114,69 @@ void AppRigidBody::input() {
                 push_force.x = 0;
             }
             break;
-        /*
+            /*
         case SDL_MOUSEMOTION:
             int a, b;
             SDL_GetMouseState(&a, &b);
-            bodies[0]->position.x = a;
-            bodies[0]->position.y = b;
+            bodies[1]->position.x = a;
+            bodies[1]->position.y = b;
             break;
-        */
-        /*
-        case SDL_MOUSEBUTTONDOWN:
-            if (!left_mouse_button_down &&
-                event.button.button == SDL_BUTTON_LEFT) {
-                left_mouse_button_down = true;
+            */
+            /*
+            case SDL_MOUSEBUTTONDOWN:
+                if (!left_mouse_button_down &&
+                    event.button.button == SDL_BUTTON_LEFT) {
+                    left_mouse_button_down = true;
+                    int x, y;
+                    SDL_GetMouseState(&x, &y);
+                    mouse_cursor.x = x;
+                    mouse_cursor.y = y;
+                }
+                break;
+            */
+            /*
+            case SDL_MOUSEBUTTONUP:
+                if (left_mouse_button_down &&
+                    event.button.button == SDL_BUTTON_LEFT) {
+                    left_mouse_button_down = false;
+                }
+                break;
+            case SDL_MOUSEMOTION:
                 int x, y;
                 SDL_GetMouseState(&x, &y);
-                mouse_cursor.x = x;
-                mouse_cursor.y = y;
-            }
-            break;
-        */
-        /*
-        case SDL_MOUSEBUTTONUP:
-            if (left_mouse_button_down &&
-                event.button.button == SDL_BUTTON_LEFT) {
-                left_mouse_button_down = false;
-            }
-            break;
-        case SDL_MOUSEMOTION:
-            int x, y;
-            SDL_GetMouseState(&x, &y);
-            bodies[0]->position.x = x;
-            bodies[0]->position.y = y;
-            break;
-        */
-        /*
+                bodies[0]->position.x = x;
+                bodies[0]->position.y = y;
+                break;
+            */
+            /*
+            case SDL_MOUSEBUTTONDOWN:
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                Body *small_ball = new Body(CircleShape(40), x, y, 1.0);
+                small_ball->restitution = 0.9;
+                bodies.push_back(small_ball);
+                break;
+            */
+            /*
         case SDL_MOUSEBUTTONDOWN:
             int x, y;
             SDL_GetMouseState(&x, &y);
-            Body *small_ball = new Body(CircleShape(40), x, y, 1.0);
-            small_ball->restitution = 0.9;
-            bodies.push_back(small_ball);
+            Body *ball = new Body(CircleShape(50), x, y, 1.0);
+            ball->restitution = 0.5;
+            ball->friction = 0.4;
+            bodies.push_back(ball);
             break;
-        */
+            */
         case SDL_MOUSEBUTTONDOWN:
             int x, y;
             SDL_GetMouseState(&x, &y);
-            Body *small_box = new Body(BoxShape(50, 50), x, y, 1.0);
-            bodies.push_back(small_box);
+            std::vector<Vec2> vertices = {Vec2(20, 60), Vec2(-40, 20),
+                                          Vec2(-20, -60), Vec2(20, -60),
+                                          Vec2(40, 20)};
+            Body *poly = new Body(PolygonShape(vertices), x, y, 2.0);
+            poly->restitution = 0.1;
+            poly->friction = 0.7;
+            bodies.push_back(poly);
             break;
         }
     }
@@ -238,21 +261,22 @@ void AppRigidBody::update() {
 
             // check bodies[i] with bodies[j]
             if (CollisionDetection::is_colliding(a, b, contact)) {
-                // TODO
                 contact.resolve_collision();
 
-                Graphics::draw_fill_circle(contact.start.x, contact.start.y, 3,
-                                           0xFFFF00FF);
-                Graphics::draw_fill_circle(contact.end.x, contact.end.y, 3,
-                                           0xFFFF00FF);
-                // only draw 15px of the line between two contact points
-                Graphics::draw_line(contact.start.x, contact.start.y,
-                                    contact.normal.x * 15 + contact.start.x,
-                                    contact.normal.y * 15 + contact.start.y,
-                                    0xFFFF00FF);
-                // collision!
-                a->is_colliding = true;
-                b->is_colliding = true;
+                if (debug) {
+                    Graphics::draw_fill_circle(contact.start.x, contact.start.y,
+                                               3, 0xFFFF00FF);
+                    Graphics::draw_fill_circle(contact.end.x, contact.end.y, 3,
+                                               0xFFFF00FF);
+                    // only draw 15px of the line between two contact points
+                    Graphics::draw_line(contact.start.x, contact.start.y,
+                                        contact.normal.x * 15 + contact.start.x,
+                                        contact.normal.y * 15 + contact.start.y,
+                                        0xFFFF00FF);
+                    // collision!
+                    a->is_colliding = true;
+                    b->is_colliding = true;
+                }
             }
         }
     }
@@ -300,17 +324,22 @@ void AppRigidBody::render() {
         Uint32 color = body->is_colliding ? 0xFF0000FF : 0xFFFFFFFF;
         if (body->shape->get_type() == CIRCLE) {
             CircleShape *circle_shape = (CircleShape *)body->shape;
-            Graphics::draw_fill_circle(body->position.x, body->position.y,
-                                       circle_shape->radius, color);
+            // Graphics::draw_fill_circle(body->position.x, body->position.y,
+            // circle_shape->radius, color);
 
             // rotation
-            // Graphics::draw_circle(body->position.x, body->position.y,
-            // circle_shape->radius, body->rotation, color);
+            Graphics::draw_circle(body->position.x, body->position.y,
+                                  circle_shape->radius, body->rotation, color);
         }
         if (body->shape->get_type() == BOX) {
             BoxShape *box_shape = (BoxShape *)body->shape;
             Graphics::draw_polygon(body->position.x, body->position.y,
                                    box_shape->world_vertices, color);
+        }
+        if (body->shape->get_type() == POLYGON) {
+            PolygonShape *polygon_shape = (PolygonShape *)body->shape;
+            Graphics::draw_polygon(body->position.x, body->position.y,
+                                   polygon_shape->world_vertices, color);
         }
     }
 

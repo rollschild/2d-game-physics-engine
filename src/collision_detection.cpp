@@ -1,7 +1,10 @@
 #include "collision_detection.h"
 #include "contact.h"
+#include "graphics.h"
 #include "shape.h"
 #include "vec2.h"
+#include <limits>
+#include <vector>
 
 bool CollisionDetection::is_colliding(Body *a, Body *b, Contact &contact) {
     bool a_is_circle = a->shape->get_type() == CIRCLE;
@@ -17,6 +20,13 @@ bool CollisionDetection::is_colliding(Body *a, Body *b, Contact &contact) {
 
     if (a_is_polygon && b_is_polygon) {
         return is_colliding_polygon_polygon(a, b, contact);
+    }
+
+    if (a_is_polygon && b_is_circle) {
+        return is_colliding_polygon_circle(a, b, contact);
+    }
+    if (a_is_circle && b_is_polygon) {
+        return is_colliding_polygon_circle(b, a, contact);
     }
     return false;
 }
@@ -81,5 +91,120 @@ bool CollisionDetection::is_colliding_polygon_polygon(Body *a, Body *b,
         contact.end = b_point;
     }
 
+    return true;
+}
+
+bool CollisionDetection::is_colliding_polygon_circle(Body *polygon,
+                                                     Body *circle,
+                                                     Contact &contact) {
+    const PolygonShape *polygon_shape = (PolygonShape *)polygon->shape;
+    const CircleShape *circle_shape = (CircleShape *)circle->shape;
+    const std::vector<Vec2> &polygon_vertices = polygon_shape->world_vertices;
+
+    Vec2 min_curr_vertex;
+    Vec2 min_next_vertex;
+    bool is_outside = false;
+    float distance_circle_edge = std::numeric_limits<float>::lowest();
+
+    for (size_t i = 0; i < polygon_vertices.size(); i++) {
+        int curr_vertex_idx = i;
+        int next_vertex_idx = (i + 1) % polygon_vertices.size();
+        Vec2 edge = polygon_shape->edge_at(curr_vertex_idx);
+        Vec2 normal = edge.normal();
+
+        // compare circle center with rectangle vertex
+        Vec2 vertext_to_circle_center =
+            circle->position - polygon_vertices[curr_vertex_idx];
+
+        // project circle center onto the edge normal
+        float projection = vertext_to_circle_center.dot(normal);
+
+        // if projection is on the positive side of the normal
+        if (projection > 0) {
+            // circle outside the polygon
+            distance_circle_edge = projection;
+            min_curr_vertex = polygon_vertices[curr_vertex_idx];
+            min_next_vertex = polygon_vertices[next_vertex_idx];
+            is_outside = true;
+            break;
+        } else {
+            // circle center is inside the polygon
+            // find the min edge - edge with the least negative projection
+            if (projection > distance_circle_edge) {
+                distance_circle_edge = projection;
+                min_curr_vertex = polygon_vertices[curr_vertex_idx];
+                min_next_vertex = polygon_vertices[next_vertex_idx];
+            }
+        }
+    }
+
+    if (is_outside) {
+        // check if inside region A
+        Vec2 v1 = circle->position - min_curr_vertex;
+        Vec2 v2 = min_next_vertex - min_curr_vertex;
+        if (v1.dot(v2) < 0) {
+            if (v1.mag() > circle_shape->radius) {
+                return false;
+            } else {
+                // detected collision in region A
+                contact.a = polygon;
+                contact.b = circle;
+                contact.depth = circle_shape->radius - v1.mag();
+                contact.normal = v1.normalize();
+                contact.start =
+                    circle->position - (contact.normal * circle_shape->radius);
+                contact.end = contact.start + (contact.normal * contact.depth);
+            }
+        } else {
+            // check if inside region B
+            v1 = circle->position - min_next_vertex;
+            v2 = min_curr_vertex - min_next_vertex;
+            if (v1.dot(v2) < 0) {
+                // inside region B
+                if (v1.mag() > circle_shape->radius) {
+                    return false;
+                } else {
+                    contact.a = polygon;
+                    contact.b = circle;
+                    contact.depth = circle_shape->radius - v1.mag();
+                    contact.normal = v1.normalize();
+                    contact.start = circle->position -
+                                    (contact.normal * circle_shape->radius);
+                    contact.end =
+                        contact.start + (contact.normal * contact.depth);
+                }
+            } else {
+                // region C
+                if (distance_circle_edge > circle_shape->radius) {
+                    return false;
+                } else {
+                    contact.a = polygon;
+                    contact.b = circle;
+                    contact.depth = circle_shape->radius - distance_circle_edge;
+                    contact.normal =
+                        (min_next_vertex - min_curr_vertex).normal();
+                    contact.start = circle->position -
+                                    (contact.normal * circle_shape->radius);
+                    contact.end =
+                        contact.start + (contact.normal * contact.depth);
+                }
+            }
+        }
+
+    } else {
+        // center of circle is inside polygon... Definitely colliding
+        contact.a = polygon;
+        contact.b = circle;
+        contact.depth = circle_shape->radius - distance_circle_edge;
+        contact.normal = (min_next_vertex - min_curr_vertex).normal();
+        contact.start =
+            circle->position - (contact.normal * circle_shape->radius);
+        contact.end = contact.start + (contact.normal * contact.depth);
+    }
+
+    // Graphics::draw_fill_circle(min_curr_vertex.x, min_curr_vertex.y, 5,
+    // 0xFF00FFFF);
+    // Graphics::draw_fill_circle(min_next_vertex.x, min_next_vertex.y, 5,
+    // 0xFF00FFFF);
     return true;
 }
