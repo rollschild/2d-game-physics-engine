@@ -1,6 +1,10 @@
 #include "body.h"
+#include "graphics.h"
 #include "shape.h"
 #include "vec2.h"
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
 #include <iostream>
 #include <math.h>
 
@@ -21,6 +25,7 @@ Body::Body(const Shape &shape, float x, float y, float mass)
 
 Body::~Body() {
     delete shape;
+    SDL_DestroyTexture(texture);
     std::cout << "Body destructor called!" << std::endl;
 }
 
@@ -66,6 +71,14 @@ void Body::update(float dt) {
     if (is_polygon) {
         PolygonShape *polygon_shape = (PolygonShape *)shape;
         polygon_shape->update_vertices(rotation, position);
+    }
+}
+
+void Body::set_texture(const char *texture_file_name) {
+    SDL_Surface *surface = IMG_Load(texture_file_name);
+    if (surface) {
+        texture = SDL_CreateTextureFromSurface(Graphics::renderer, surface);
+        SDL_FreeSurface(surface);
     }
 }
 

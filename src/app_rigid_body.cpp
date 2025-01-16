@@ -64,6 +64,7 @@ void AppRigidBody::setup() {
                              Graphics::height() / 2.0, 0.0);
     big_box->restitution = 0.7;
     big_box->rotation = 1.4;
+    big_box->set_texture("./assets/crate.png");
 
     // Body *ball = new Body(CircleShape(50), Graphics::width() / 2.0,
     // Graphics::height() / 2.0, 1.0);
@@ -167,6 +168,7 @@ void AppRigidBody::input() {
             bodies.push_back(ball);
             break;
             */
+            /*
         case SDL_MOUSEBUTTONDOWN:
             int x, y;
             SDL_GetMouseState(&x, &y);
@@ -177,6 +179,25 @@ void AppRigidBody::input() {
             poly->restitution = 0.1;
             poly->friction = 0.7;
             bodies.push_back(poly);
+            break;
+            */
+        case SDL_MOUSEBUTTONDOWN:
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                Body *ball = new Body(CircleShape(30), x, y, 1.0);
+                ball->set_texture("./assets/basketball.png");
+                ball->restitution = 0.5;
+                bodies.push_back(ball);
+            }
+            if (event.button.button == SDL_BUTTON_RIGHT) {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                Body *box = new Body(BoxShape(60, 60), x, y, 1.0);
+                box->set_texture("./assets/crate.png");
+                box->restitution = 0.2;
+                bodies.push_back(box);
+            }
             break;
         }
     }
@@ -327,19 +348,38 @@ void AppRigidBody::render() {
             // Graphics::draw_fill_circle(body->position.x, body->position.y,
             // circle_shape->radius, color);
 
-            // rotation
-            Graphics::draw_circle(body->position.x, body->position.y,
-                                  circle_shape->radius, body->rotation, color);
+            if (!debug && body->texture) {
+                Graphics::draw_texture(body->position.x, body->position.y,
+                                       circle_shape->radius * 2,
+                                       circle_shape->radius * 2, body->rotation,
+                                       body->texture);
+            } else {
+                Graphics::draw_circle(body->position.x, body->position.y,
+                                      circle_shape->radius, body->rotation,
+                                      color);
+            }
         }
         if (body->shape->get_type() == BOX) {
             BoxShape *box_shape = (BoxShape *)body->shape;
-            Graphics::draw_polygon(body->position.x, body->position.y,
-                                   box_shape->world_vertices, color);
+            if (!debug && body->texture) {
+                Graphics::draw_texture(body->position.x, body->position.y,
+                                       box_shape->width, box_shape->height,
+                                       body->rotation, body->texture);
+            } else {
+                Graphics::draw_polygon(body->position.x, body->position.y,
+                                       box_shape->world_vertices, color);
+            }
         }
         if (body->shape->get_type() == POLYGON) {
             PolygonShape *polygon_shape = (PolygonShape *)body->shape;
-            Graphics::draw_polygon(body->position.x, body->position.y,
-                                   polygon_shape->world_vertices, color);
+            if (!debug) {
+                Graphics::draw_fill_polygon(body->position.x, body->position.y,
+                                            polygon_shape->world_vertices,
+                                            color);
+            } else {
+                Graphics::draw_polygon(body->position.x, body->position.y,
+                                       polygon_shape->world_vertices, color);
+            }
         }
     }
 

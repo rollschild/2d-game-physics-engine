@@ -3,6 +3,9 @@
 
 #include "shape.h"
 #include "vec2.h"
+#include <SDL2/SDL.h>
+// #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_render.h>
 
 struct Body {
     bool is_colliding = false;
@@ -34,6 +37,9 @@ struct Body {
 
     Shape *shape = nullptr;
 
+    // pointer to SDL texture
+    SDL_Texture *texture = nullptr;
+
     Body(const Shape &shape, float x, float y, float m);
     ~Body();
 
@@ -49,6 +55,8 @@ struct Body {
     void integrate_angular(float dt);
 
     void update(float dt);
+
+    void set_texture(const char *texture_file_name);
 
     bool is_static() const;
 
