@@ -87,3 +87,8 @@
   - similar to **friction**
 - Polygon-Circle Collision
   1. compute the nearest edge (closet to center of circle)
+
+## Game Engine Design
+
+- the **world** object
+-

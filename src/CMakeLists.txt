@@ -13,4 +13,6 @@ target_sources(
           shape.cpp
           body.cpp
           collision_detection.cpp
-          contact.cpp)
+          contact.cpp
+          app_world.cpp
+          world.cpp)

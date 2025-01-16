@@ -1,9 +1,11 @@
 #include "app_particle.h"
 #include "app_rigid_body.h"
+#include "app_world.h"
 
 int main(/* int argc, char *args[] */) {
     // AppParticle app;
-    AppRigidBody app;
+    // AppRigidBody app;
+    AppWorld app;
     app.setup();
 
     while (app.is_running()) {
