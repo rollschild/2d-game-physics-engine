@@ -13,6 +13,8 @@ struct Shape {
     // virtual float get_moment_of_inertia() const = 0;
 
     virtual float get_moment_of_inertia() const = 0;
+
+    virtual void update_vertices(float angle, const Vec2 &position) = 0;
 };
 
 struct CircleShape : public Shape {
@@ -24,6 +26,8 @@ struct CircleShape : public Shape {
     Shape *clone() const override;
 
     float get_moment_of_inertia() const override;
+
+    void update_vertices(float angle, const Vec2 &position) override;
 };
 
 struct PolygonShape : public Shape {
@@ -43,7 +47,7 @@ struct PolygonShape : public Shape {
                               Vec2 &point) const;
 
     // rotate/translate polygon vertices from local space to world space
-    void update_vertices(float rotation, const Vec2 &position);
+    void update_vertices(float angle, const Vec2 &position) override;
 };
 
 struct BoxShape : public PolygonShape {

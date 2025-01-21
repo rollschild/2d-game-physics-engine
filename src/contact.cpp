@@ -12,8 +12,11 @@ void Contact::resolve_penetration() {
     float da = depth / (a->inv_mass + b->inv_mass) * a->inv_mass;
     float db = depth / (a->inv_mass + b->inv_mass) * b->inv_mass;
 
-    a->position -= normal * da;
-    b->position += normal * db;
+    a->position -= normal * da * 0.8;
+    b->position += normal * db * 0.8;
+
+    a->shape->update_vertices(a->rotation, a->position);
+    b->shape->update_vertices(b->rotation, b->position);
 }
 
 void Contact::resolve_collision() {

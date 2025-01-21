@@ -17,6 +17,12 @@ float CircleShape::get_moment_of_inertia() const {
     return 0.5 * (radius * radius);
 }
 
+void CircleShape::update_vertices([[maybe_unused]] float angle,
+                                  [[maybe_unused]] const Vec2 &position) {
+    // circle have no vertices
+    return;
+}
+
 ShapeType CircleShape::get_type() const { return CIRCLE; }
 
 Shape *CircleShape::clone() const { return new CircleShape(radius); }
