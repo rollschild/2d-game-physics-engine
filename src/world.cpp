@@ -43,11 +43,7 @@ void World::update(float dt) {
         body->update(dt);
     }
 
-    for (int n = 0; n < 10; n++) {
-        // trying to fix unstable jittering
-        // lowers our FPS
-        check_collisions();
-    }
+    check_collisions();
 }
 
 void World::check_collisions() {

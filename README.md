@@ -91,4 +91,27 @@
 ## Game Engine Design
 
 - the **world** object
+
+### Constraints
+
+- the most popular technique to implement motion of rigid bodies is to apply **constraints**
+- define restrictions on how bodies move
+- Types:
+  - **joint** constraints
+  - **non-penetration**
+- remove **degrees of freedom**
+- the **constraint function C**
+  - takes the **state** of a pair of rigid bodies as parameter - **state vector** with:
+    - positions
+    - masses
+    - orientations
+    - velocities
+  - outputs a scalar number
+  - when value of the function is in the acceptable range, the constraint is _satisfied_
+  - in each step of the simulation, we must apply forces or impulses on the rigid bodies to attempt to keep the value of `C` in the allowed range
+- modern physics engines solve **systems of constraints**
+- **equality constraints**
+- **inequality constraints**
+  - solve collisions
+- **Baumgarte stabilization factor (bias term)**
 -

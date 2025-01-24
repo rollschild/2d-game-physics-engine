@@ -15,4 +15,7 @@ target_sources(
           collision_detection.cpp
           contact.cpp
           app_world.cpp
-          world.cpp)
+          world.cpp
+          vec_n.cpp
+          constraint.cpp
+          matrix_mn.cpp)
