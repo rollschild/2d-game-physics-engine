@@ -2,16 +2,44 @@
 #define CONSTRAINT_H
 
 #include "body.h"
+#include "matrix_mn.h"
+#include "vec2.h"
+#include "vec_n.h"
 
 class Constraint {
   public:
     Body *a;
     Body *b;
 
-    MatrixMN get_inv_matrix();
-    VecN vec;
+    // anchor point in A's local space
+    Vec2 a_point;
+    // anchor point in B's local space
+    Vec2 b_point;
 
-    void solve();
+    virtual ~Constraint() = default;
+
+    MatrixMN get_inv_matrix() const;
+    VecN get_velocities() const;
+
+    // the `{}` is needed here
+    // otherwise you will get the `undefined reference to vtable` error!
+    // https://gcc.gnu.org/faq.html#vtables
+    virtual void solve() {};
+};
+
+class JointConstraint : public Constraint {
+  private:
+    MatrixMN jacobian;
+
+  public:
+    JointConstraint();
+    JointConstraint(Body *a, Body *b, const Vec2 &anchor_point);
+    void solve() override;
+};
+
+class PenetrationConstraint : public Constraint {
+    // TODO
+    // MatrixMN jacobian;
 };
 
 #endif

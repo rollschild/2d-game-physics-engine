@@ -21,6 +21,8 @@ struct MatrixMN {
     const MatrixMN &operator=(const MatrixMN &m);
     VecN operator*(const VecN &v) const;         // m1 * v
     MatrixMN operator*(const MatrixMN &m) const; // m1 * m2
+
+    static VecN solve_gauss_seidel(const MatrixMN A, const VecN &b);
 };
 
 #endif

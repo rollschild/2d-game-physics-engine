@@ -58,16 +58,26 @@ struct Body {
 
     void set_texture(const char *texture_file_name);
 
+    Vec2 localspace_to_worldspace(const Vec2 &point) const;
+    Vec2 worldspace_to_localspace(const Vec2 &point) const;
+
     bool is_static() const;
 
     /**
      * Linear impulse, applied at center of mass
      */
-    void apply_impulse(const Vec2 &j);
+    void apply_impulse_linear(const Vec2 &j);
+    /**
+     * Angular impulse, applied at center of mass
+     */
+    void apply_impulse_angular(const float j);
     /**
      * Both linear and angular impulse, applied at point of contact
      */
-    void apply_impulse(const Vec2 &j, const Vec2 &r);
+    void apply_impulse_at_point(const Vec2 &j, const Vec2 &r);
+
+    void integrate_forces(const float dt);
+    void integrate_velocities(const float dt);
 };
 
 #endif

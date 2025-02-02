@@ -18,4 +18,5 @@ target_sources(
           world.cpp
           vec_n.cpp
           constraint.cpp
-          matrix_mn.cpp)
+          matrix_mn.cpp
+          app_constraint.cpp)

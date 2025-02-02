@@ -84,3 +84,21 @@ MatrixMN MatrixMN::operator*(const MatrixMN &m) const {
 
     return result;
 }
+
+VecN MatrixMN::solve_gauss_seidel(const MatrixMN A, const VecN &b) {
+    const int N = b.N;
+    VecN X(N);
+    X.zero();
+
+    // iterate N times
+    for (int iter = 0; iter < N; iter++) {
+        for (int n = 0; n < N; n++) {
+            if (A.rows[n][n] != 0.0f) {
+                X[n] +=
+                    (b[n] / A.rows[n][n]) - (A.rows[n].dot(X) / A.rows[n][n]);
+            }
+        }
+    }
+
+    return X;
+}

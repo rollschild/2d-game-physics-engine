@@ -58,6 +58,6 @@ void Contact::resolve_collision() {
 
     Vec2 j = jn + jt;
 
-    a->apply_impulse(j, ra);
-    b->apply_impulse(-j, rb);
+    a->apply_impulse_at_point(j, ra);
+    b->apply_impulse_at_point(-j, rb);
 }

@@ -114,4 +114,7 @@
 - **inequality constraints**
   - solve collisions
 - **Baumgarte stabilization factor (bias term)**
+- Generalized velocity-based constraints
+  - $JV + b = 0$
+  - $J$ is the **Jacobian Matrix**
 -

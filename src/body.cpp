@@ -5,6 +5,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_surface.h>
+#include <cmath>
 #include <iostream>
 #include <math.h>
 
@@ -95,7 +96,7 @@ bool Body::is_static() const {
 /*
  * Δv = J / m
  */
-void Body::apply_impulse(const Vec2 &j) {
+void Body::apply_impulse_linear(const Vec2 &j) {
     if (is_static()) {
         return;
     }
@@ -103,12 +104,62 @@ void Body::apply_impulse(const Vec2 &j) {
     velocity += j * inv_mass;
 }
 
+void Body::apply_impulse_angular(const float j) {
+    if (is_static()) {
+        return;
+    }
+
+    angular_vel += j * inv_I;
+}
+
 // changes both linear and angular velocity
-void Body::apply_impulse(const Vec2 &j, const Vec2 &r) {
+void Body::apply_impulse_at_point(const Vec2 &j, const Vec2 &r) {
     if (is_static()) {
         return;
     }
 
     velocity += j * inv_mass;
     angular_vel += r.cross(j) * inv_I;
+}
+
+Vec2 Body::localspace_to_worldspace(const Vec2 &point) const {
+    Vec2 rotated = point.rotate(rotation);
+    return rotated + position;
+}
+Vec2 Body::worldspace_to_localspace(const Vec2 &point) const {
+    float translated_x = point.x - position.x;
+    float translated_y = point.y - position.y;
+    // inverse of the rotation done in localspace_to_worldspace
+    // rotation matrix
+    //  R = [[cos, -sin], [sin, cos]]
+    float rotated_x =
+        cos(-rotation) * translated_x - sin(-rotation) * translated_y;
+    float rotated_y =
+        cos(-rotation) * translated_y + sin(-rotation) * translated_x;
+    return Vec2(rotated_x, rotated_y);
+}
+
+void Body::integrate_forces(const float dt) {
+    if (is_static()) {
+        return;
+    }
+
+    acceleartion = sum_forces * inv_mass;
+    velocity += acceleartion * dt;
+
+    angular_acc = sum_torque * inv_I;
+    angular_vel += angular_acc * dt;
+
+    clear_forces();
+    clear_torque();
+}
+
+void Body::integrate_velocities(const float dt) {
+    if (is_static()) {
+        return;
+    }
+
+    position += velocity * dt;
+    rotation += angular_vel * dt;
+    shape->update_vertices(rotation, position);
 }
