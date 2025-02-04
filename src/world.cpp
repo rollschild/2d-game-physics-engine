@@ -53,8 +53,16 @@ void World::update(float dt) {
 
     // 2. solve all constraints
     for (auto &constraint : constraints) {
-        constraint->solve();
+        constraint->pre_solve(dt);
     }
+    for (int i = 0; i < 5; i++) {
+        for (auto &constraint : constraints) {
+            constraint->solve();
+        }
+    }
+    // for (auto &constraint : constraints) {
+    // constraint->post_solve();
+    // }
 
     // 3. integrate velocities (update vertices)
     for (auto body : bodies) {

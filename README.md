@@ -117,4 +117,5 @@
 - Generalized velocity-based constraints
   - $JV + b = 0$
   - $J$ is the **Jacobian Matrix**
+- **Warm starting**
 -

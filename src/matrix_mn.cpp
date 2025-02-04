@@ -93,9 +93,12 @@ VecN MatrixMN::solve_gauss_seidel(const MatrixMN A, const VecN &b) {
     // iterate N times
     for (int iter = 0; iter < N; iter++) {
         for (int n = 0; n < N; n++) {
-            if (A.rows[n][n] != 0.0f) {
-                X[n] +=
-                    (b[n] / A.rows[n][n]) - (A.rows[n].dot(X) / A.rows[n][n]);
+            float dx =
+                (b[n] / A.rows[n][n]) - (A.rows[n].dot(X) / A.rows[n][n]);
+
+            if (dx == dx) {
+                // ensure it's not NaN
+                X[n] += dx;
             }
         }
     }

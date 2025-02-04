@@ -3,6 +3,7 @@
 #include "matrix_mn.h"
 #include "vec2.h"
 #include "vec_n.h"
+#include <algorithm>
 
 VecN Constraint::get_velocities() const {
     VecN V(6);
@@ -40,16 +41,21 @@ MatrixMN Constraint::get_inv_matrix() const {
     return inv_m;
 }
 
-JointConstraint::JointConstraint() : Constraint(), jacobian(1, 6) {}
+JointConstraint::JointConstraint()
+    : Constraint(), jacobian(1, 6), cached_lambda(1), bias(0.0f) {
+    cached_lambda.zero();
+}
 JointConstraint::JointConstraint(Body *a, Body *b, const Vec2 &anchor_point)
-    : Constraint(), jacobian(1, 6) {
+    : Constraint(), jacobian(1, 6), cached_lambda(1), bias(0.0f) {
     this->a = a;
     this->b = b;
     this->a_point = a->worldspace_to_localspace(anchor_point);
     this->b_point = b->worldspace_to_localspace(anchor_point);
+
+    cached_lambda.zero();
 }
 
-void JointConstraint::solve() {
+void JointConstraint::pre_solve(const float dt) {
     // get anchor point position in world space
     const Vec2 pa = a->localspace_to_worldspace(a_point);
     const Vec2 pb = b->localspace_to_worldspace(b_point);
@@ -70,6 +76,32 @@ void JointConstraint::solve() {
     float j4 = rb.cross(pb - pa) * 2.0;
     jacobian.rows[0][5] = j4;
 
+    // Warm starting
+    // Before anything else, apply the cached_lambda from the previous solve()
+    // call
+    // compute final impulses with direction and magnitude
+    const MatrixMN jt = jacobian.transpose();
+    VecN impulses = jt * cached_lambda;
+
+    // apply lambda impulse to both A and B
+    a->apply_impulse_linear(Vec2(impulses[0], impulses[1]));
+    a->apply_impulse_angular(impulses[2]);
+    b->apply_impulse_linear(Vec2(impulses[3], impulses[4]));
+    b->apply_impulse_angular(impulses[5]);
+
+    // compute bias (baumgarte stabilization)
+    const float beta = 0.1f;
+    // compute the positional error
+    float C = (pb - pa).dot(pb - pa);
+    C = std::max(0.0f, C - 0.001f);
+    bias = (beta / dt) * C;
+}
+
+void JointConstraint::post_solve() {
+    // TODO
+}
+
+void JointConstraint::solve() {
     // v = get_velocities()
     const VecN v = get_velocities();
 
@@ -83,9 +115,13 @@ void JointConstraint::solve() {
     // (JM^(-1)Jt)lambda = -(JV + b)
     VecN rhs = jacobian * v * -1.0f;
     MatrixMN lhs = jacobian * inv_M * jt;
+    rhs[0] -= bias;
     // Solve lambda using the **Gauss-Seidel method**
     // Ax = b
     VecN lambda = MatrixMN::solve_gauss_seidel(lhs, rhs);
+
+    // save the lambda
+    cached_lambda += lambda;
 
     // compute final impulses with direction and magnitude
     VecN impulses = jt * lambda;

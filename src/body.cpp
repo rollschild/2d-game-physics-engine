@@ -21,6 +21,8 @@ Body::Body(const Shape &shape, float x, float y, float mass)
     I = this->shape->get_moment_of_inertia() * mass;
     inv_I = I != 0.0 ? (1.0 / I) : 0.0;
 
+    this->shape->update_vertices(rotation, position);
+
     std::cout << "Body constructor called!" << std::endl;
 }
 

@@ -25,16 +25,22 @@ class Constraint {
     // otherwise you will get the `undefined reference to vtable` error!
     // https://gcc.gnu.org/faq.html#vtables
     virtual void solve() {};
+    virtual void pre_solve([[maybe_unused]] const float dt) {};
+    virtual void post_solve() {};
 };
 
 class JointConstraint : public Constraint {
   private:
     MatrixMN jacobian;
+    VecN cached_lambda;
+    float bias;
 
   public:
     JointConstraint();
     JointConstraint(Body *a, Body *b, const Vec2 &anchor_point);
     void solve() override;
+    void pre_solve(const float dt) override;
+    void post_solve() override;
 };
 
 class PenetrationConstraint : public Constraint {

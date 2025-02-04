@@ -22,16 +22,21 @@ void AppConstraint::setup() {
 
     world = new World(-9.8);
 
-    Body *a = new Body(CircleShape(30), Graphics::width() / 2.0,
-                       Graphics::height() / 2.0, 0.0f);
-    Body *b =
-        new Body(CircleShape(20), a->position.x - 100, a->position.y, 1.0f);
-    world->add_body(a);
-    world->add_body(b);
+    const int NUM_BODIES = 8;
+    for (int i = 0; i < NUM_BODIES; i++) {
+        float mass = (i == 0) ? 0.0 : 1.0;
+        Body *body = new Body(BoxShape(30, 30),
+                              Graphics::width() / 2.0 - (i * 40), 100, mass);
+        body->set_texture("./assets/crate.png");
+        world->add_body(body);
+    }
 
-    JointConstraint *joint = new JointConstraint(a, b, a->position);
-
-    world->add_constraint(joint);
+    for (int j = 0; j < NUM_BODIES - 1; j++) {
+        Body *a = world->get_bodies()[j];
+        Body *b = world->get_bodies()[j + 1];
+        JointConstraint *joint = new JointConstraint(a, b, a->position);
+        world->add_constraint(joint);
+    }
 }
 
 /**
@@ -76,72 +81,6 @@ void AppConstraint::input() {
                 push_force.x = 0;
             }
             break;
-            /*
-        case SDL_MOUSEMOTION:
-            int a, b;
-            SDL_GetMouseState(&a, &b);
-            bodies[1]->position.x = a;
-            bodies[1]->position.y = b;
-            break;
-            */
-            /*
-            case SDL_MOUSEBUTTONDOWN:
-                if (!left_mouse_button_down &&
-                    event.button.button == SDL_BUTTON_LEFT) {
-                    left_mouse_button_down = true;
-                    int x, y;
-                    SDL_GetMouseState(&x, &y);
-                    mouse_cursor.x = x;
-                    mouse_cursor.y = y;
-                }
-                break;
-            */
-            /*
-            case SDL_MOUSEBUTTONUP:
-                if (left_mouse_button_down &&
-                    event.button.button == SDL_BUTTON_LEFT) {
-                    left_mouse_button_down = false;
-                }
-                break;
-            case SDL_MOUSEMOTION:
-                int x, y;
-                SDL_GetMouseState(&x, &y);
-                bodies[0]->position.x = x;
-                bodies[0]->position.y = y;
-                break;
-            */
-            /*
-            case SDL_MOUSEBUTTONDOWN:
-                int x, y;
-                SDL_GetMouseState(&x, &y);
-                Body *small_ball = new Body(CircleShape(40), x, y, 1.0);
-                small_ball->restitution = 0.9;
-                bodies.push_back(small_ball);
-                break;
-            */
-            /*
-        case SDL_MOUSEBUTTONDOWN:
-            int x, y;
-            SDL_GetMouseState(&x, &y);
-            Body *ball = new Body(CircleShape(50), x, y, 1.0);
-            ball->restitution = 0.5;
-            ball->friction = 0.4;
-            bodies.push_back(ball);
-            break;
-            */
-            /*
-        case SDL_MOUSEBUTTONDOWN:
-            int x, y;
-            SDL_GetMouseState(&x, &y);
-            std::vector<Vec2> vertices = {Vec2(20, 60), Vec2(-40, 20),
-                                          Vec2(-20, -60), Vec2(20, -60),
-                                          Vec2(40, 20)};
-            Body *poly = new Body(PolygonShape(vertices), x, y, 2.0);
-            poly->restitution = 0.1;
-            poly->friction = 0.7;
-            bodies.push_back(poly);
-            break;
-            */
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT) {
                 int x, y;
@@ -208,6 +147,13 @@ void AppConstraint::update() {
 void AppConstraint::render() {
     // `FF` - full opacity, no transparency
     // Graphics::clear_screen(0xFF056263);
+
+    // draw a line between joint objects
+    for (auto joint : world->get_constraints()) {
+        const Vec2 pa = joint->a->localspace_to_worldspace(joint->a_point);
+        const Vec2 pb = joint->b->localspace_to_worldspace(joint->a_point);
+        Graphics::draw_line(pa.x, pa.y, pb.x, pb.y, 0xFF555555);
+    }
 
     for (auto body : world->get_bodies()) {
         Uint32 color = body->is_colliding ? 0xFF0000FF : 0xFFFFFFFF;
