@@ -8,7 +8,7 @@
 #include <SDL2/SDL_render.h>
 
 struct Body {
-    bool is_colliding = false;
+    // bool is_colliding = false;
 
     // linear motion
     Vec2 position;

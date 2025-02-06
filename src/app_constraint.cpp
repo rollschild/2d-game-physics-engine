@@ -22,6 +22,7 @@ void AppConstraint::setup() {
 
     world = new World(-9.8);
 
+    /*
     const int NUM_BODIES = 8;
     for (int i = 0; i < NUM_BODIES; i++) {
         float mass = (i == 0) ? 0.0 : 1.0;
@@ -37,6 +38,27 @@ void AppConstraint::setup() {
         JointConstraint *joint = new JointConstraint(a, b, a->position);
         world->add_constraint(joint);
     }
+    */
+
+    Body *big_ball = new Body(CircleShape(64), Graphics::width() / 2.0,
+                              Graphics::height() / 2.0, 0.0);
+    big_ball->set_texture("./assets/blowingball.png");
+    world->add_body(big_ball);
+
+    Body *floor =
+        new Body(BoxShape(Graphics::width() - 50, 50), Graphics::width() / 2.0,
+                 Graphics::height() - 50, 0.0);
+    Body *left_wall = new Body(BoxShape(50, Graphics::height() - 100), 50,
+                               Graphics::height() / 2.0 - 25, 0.0);
+    Body *right_wall =
+        new Body(BoxShape(50, Graphics::height() - 100), Graphics::width() - 50,
+                 Graphics::height() / 2.0 - 25, 0.0);
+    floor->restitution = 0.7;
+    left_wall->restitution = 0.2;
+    right_wall->restitution = 0.2;
+    world->add_body(floor);
+    world->add_body(left_wall);
+    world->add_body(right_wall);
 }
 
 /**
@@ -85,15 +107,15 @@ void AppConstraint::input() {
             if (event.button.button == SDL_BUTTON_LEFT) {
                 int x, y;
                 SDL_GetMouseState(&x, &y);
-                Body *ball = new Body(CircleShape(30), x, y, 1.0);
+                Body *ball = new Body(CircleShape(64), x, y, 1.0);
                 ball->set_texture("./assets/basketball.png");
-                ball->restitution = 0.5;
+                ball->restitution = 0.7;
                 world->add_body(ball);
             }
             if (event.button.button == SDL_BUTTON_RIGHT) {
                 int x, y;
                 SDL_GetMouseState(&x, &y);
-                Body *box = new Body(BoxShape(60, 60), x, y, 1.0);
+                Body *box = new Body(BoxShape(140, 140), x, y, 1.0);
                 box->set_texture("./assets/crate.png");
                 box->restitution = 0.2;
                 world->add_body(box);
@@ -156,7 +178,8 @@ void AppConstraint::render() {
     }
 
     for (auto body : world->get_bodies()) {
-        Uint32 color = body->is_colliding ? 0xFF0000FF : 0xFFFFFFFF;
+        // Uint32 color = body->is_colliding ? 0xFF0000FF : 0xFFFFFFFF;
+        Uint32 color = 0xFF0000FF;
         if (body->shape->get_type() == CIRCLE) {
             CircleShape *circle_shape = (CircleShape *)body->shape;
             // Graphics::draw_fill_circle(body->position.x, body->position.y,

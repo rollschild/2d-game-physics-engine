@@ -17,6 +17,9 @@ World::~World() {
     for (auto body : bodies) {
         delete body;
     }
+    for (auto constraint : constraints) {
+        delete constraint;
+    }
     std::cout << "World destructor called!" << std::endl;
 }
 
@@ -34,7 +37,11 @@ void World::apply_torque(float torque) { torques.push_back(torque); }
  * 4. integrate velocities to find new positions
  */
 void World::update(float dt) {
-    for (auto body : bodies) {
+    // create vector of penetration constraints
+    // that will be solved frame per frame
+    std::vector<PenetrationConstraint> pens;
+
+    for (auto &body : bodies) {
         Vec2 weight = Vec2(0.0, body->mass * G * PIXELS_PER_METER);
         body->apply_force(weight);
 
@@ -47,25 +54,54 @@ void World::update(float dt) {
     }
 
     // 1. Integrate all forces (a = F/m)
-    for (auto body : bodies) {
+    for (auto &body : bodies) {
         body->integrate_forces(dt);
+    }
+
+    for (size_t i = 0; i <= bodies.size() - 1; i++) {
+        for (size_t j = i + 1; j < bodies.size(); j++) {
+            Body *a = bodies[i];
+            Body *b = bodies[j];
+            // a->is_colliding = false;
+            // b->is_colliding = false;
+
+            Contact contact;
+            if (CollisionDetection::is_colliding(a, b, contact)) {
+                // create a new penetration constraint
+                // as soon as collision detected
+                PenetrationConstraint penetration(contact.a, contact.b,
+                                                  contact.start, contact.end,
+                                                  contact.normal);
+                pens.push_back(penetration);
+                contact.resolve_collision();
+            }
+        }
     }
 
     // 2. solve all constraints
     for (auto &constraint : constraints) {
         constraint->pre_solve(dt);
     }
+    for (auto &constraint : pens) {
+        constraint.pre_solve(dt);
+    }
     for (int i = 0; i < 5; i++) {
         for (auto &constraint : constraints) {
             constraint->solve();
         }
+        for (auto &constraint : pens) {
+            constraint.solve();
+        }
     }
-    // for (auto &constraint : constraints) {
-    // constraint->post_solve();
-    // }
+    for (auto &constraint : constraints) {
+        constraint->post_solve();
+    }
+    for (auto &constraint : pens) {
+        constraint.post_solve();
+    }
 
     // 3. integrate velocities (update vertices)
-    for (auto body : bodies) {
+    for (auto &body : bodies) {
         body->integrate_velocities(dt);
     }
 
@@ -75,7 +111,7 @@ void World::update(float dt) {
     }
     */
 
-    check_collisions();
+    // check_collisions();
 }
 
 void World::check_collisions() {
@@ -83,8 +119,8 @@ void World::check_collisions() {
         for (size_t j = i + 1; j < bodies.size(); j++) {
             Body *a = bodies[i];
             Body *b = bodies[j];
-            a->is_colliding = false;
-            b->is_colliding = false;
+            // a->is_colliding = false;
+            // b->is_colliding = false;
 
             Contact contact;
             if (CollisionDetection::is_colliding(a, b, contact)) {

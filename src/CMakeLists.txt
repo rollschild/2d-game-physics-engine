@@ -9,12 +9,12 @@ target_sources(
           vec2.cpp
           particle.cpp
           force.cpp
-          app_rigid_body.cpp
+          # app_rigid_body.cpp
           shape.cpp
           body.cpp
           collision_detection.cpp
           contact.cpp
-          app_world.cpp
+          # app_world.cpp
           world.cpp
           vec_n.cpp
           constraint.cpp
