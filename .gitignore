@@ -2,6 +2,8 @@
 .cache/
 build/
 
+assets/._*
+
 # Prerequisites
 *.d
 
