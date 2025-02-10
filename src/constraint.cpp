@@ -172,7 +172,7 @@ void PenetrationConstraint::pre_solve(const float dt) {
     jacobian.rows[0][0] = j1.x;
     jacobian.rows[0][1] = j1.y;
 
-    float j2 = -ra.cross(normal);
+    float j2 = -ra.cross(n);
     jacobian.rows[0][2] = j2;
 
     Vec2 j3 = n;

@@ -31,6 +31,9 @@ struct CircleShape : public Shape {
 };
 
 struct PolygonShape : public Shape {
+    float width;
+    float height;
+
     std::vector<Vec2> local_vertices;
     std::vector<Vec2> world_vertices;
 
@@ -43,8 +46,13 @@ struct PolygonShape : public Shape {
     float get_moment_of_inertia() const override;
 
     Vec2 edge_at(const int index) const;
-    float find_min_separation(const PolygonShape *other, Vec2 &axis,
-                              Vec2 &point) const;
+    float find_min_separation(const PolygonShape *other, int &index_ref_edge,
+                              Vec2 &support_point) const;
+    int find_incident_edge(const Vec2 &normal) const;
+
+    int clip_segment_to_line(const std::vector<Vec2> &contacts_in,
+                             std::vector<Vec2> &contacts_out, const Vec2 &c0,
+                             const Vec2 &c1) const;
 
     // rotate/translate polygon vertices from local space to world space
     void update_vertices(float angle, const Vec2 &position) override;

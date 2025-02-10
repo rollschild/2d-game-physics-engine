@@ -14,6 +14,8 @@ class AppConstraint {
     bool running = false;
     World *world;
 
+    SDL_Texture *bg_texture;
+
     Vec2 push_force = Vec2(0, 0); // controlled by keyboard
     Vec2 mouse_cursor = Vec2(0, 0);
     bool left_mouse_button_down = false;

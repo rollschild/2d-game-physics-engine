@@ -13,7 +13,7 @@ target_sources(
           shape.cpp
           body.cpp
           collision_detection.cpp
-          contact.cpp
+          contact.h
           # app_world.cpp
           world.cpp
           vec_n.cpp

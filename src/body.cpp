@@ -14,7 +14,7 @@
 Body::Body(const Shape &shape, float x, float y, float mass)
     : position(Vec2(x, y)), velocity(Vec2(0, 0)), acceleartion(Vec2(0, 0)),
       rotation(0.0), angular_vel(0.0), angular_acc(0.0), sum_forces(Vec2(0, 0)),
-      sum_torque(0.0), mass(mass), restitution(1.0), friction(0.7),
+      sum_torque(0.0), mass(mass), restitution(0.6), friction(0.7),
       shape(shape.clone()) {
     inv_mass = mass != 0.0 ? (1.0 / mass) : 0.0;
 

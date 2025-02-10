@@ -1,5 +1,6 @@
 #include "shape.h"
 #include "vec2.h"
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <vector>
@@ -29,6 +30,27 @@ Shape *CircleShape::clone() const { return new CircleShape(radius); }
 
 PolygonShape::PolygonShape(const std::vector<Vec2> vertices)
     : local_vertices(vertices), world_vertices(vertices) {
+
+    float min_x = std::numeric_limits<float>::max();
+    float min_y = std::numeric_limits<float>::max();
+    float max_x = std::numeric_limits<float>::lowest();
+    float max_y = std::numeric_limits<float>::lowest();
+
+    // initialize vertices of the polygon shape and set width and height
+    for (auto vertex : vertices) {
+        local_vertices.push_back(vertex);
+        world_vertices.push_back(vertex);
+
+        // find min and max X and Y to calculate polygon width and height
+        min_x = std::min(min_x, vertex.x);
+        max_x = std::max(max_x, vertex.x);
+        min_y = std::min(min_y, vertex.y);
+        max_y = std::max(max_y, vertex.y);
+    }
+
+    width = max_x - min_x;
+    height = max_y - min_y;
+
     std::cout << "PolygonShape constructor called!" << std::endl;
 }
 
@@ -62,8 +84,9 @@ Vec2 PolygonShape::edge_at(const int index) const {
     return world_vertices[next_vertex] - world_vertices[curr_vertex];
 }
 
-float PolygonShape::find_min_separation(const PolygonShape *other, Vec2 &axis,
-                                        Vec2 &point) const {
+float PolygonShape::find_min_separation(const PolygonShape *other,
+                                        int &index_ref_edge,
+                                        Vec2 &support_point) const {
     // Loop all vertices of a
     //   - find normal axis (perpendicular)
     //   - loop all vertices of b
@@ -91,12 +114,61 @@ float PolygonShape::find_min_separation(const PolygonShape *other, Vec2 &axis,
 
         if (separation < min_sep) {
             separation = min_sep;
-            axis = this->edge_at(i);
-            point = min_vertex;
+            index_ref_edge = i;
+            support_point = min_vertex;
         }
     }
 
     return separation;
+}
+
+int PolygonShape::find_incident_edge(const Vec2 &normal) const {
+    int index_incident_edge = 0;
+    float min_proj = std::numeric_limits<float>::max();
+    for (size_t i = 0; i < this->world_vertices.size(); ++i) {
+        auto edge_normal = this->edge_at(i).normal();
+        auto proj = edge_normal.dot(normal);
+        if (proj < min_proj) {
+            min_proj = proj;
+            index_incident_edge = i;
+        }
+    }
+    return index_incident_edge;
+}
+
+int PolygonShape::clip_segment_to_line(const std::vector<Vec2> &contacts_in,
+                                       std::vector<Vec2> &contacts_out,
+                                       const Vec2 &c0, const Vec2 &c1) const {
+    // start with no output pionts
+    int num_out = 0;
+
+    // calculate the distance of end points to the line
+    Vec2 normal = (c1 - c0).normalize();
+    float dist0 = (contacts_in[0] - c0).cross(normal);
+    float dist1 = (contacts_in[1] - c0).cross(normal);
+
+    // if the points are behind the plane
+    if (dist0 <= 0) {
+        contacts_out[num_out++] = contacts_in[0];
+    }
+    if (dist1 <= 0) {
+        contacts_out[num_out++] = contacts_in[1];
+    }
+
+    // if the points are on different sides of the plane
+    if (dist0 * dist1 < 0) {
+        float total_dist = dist0 - dist1;
+
+        // find the intersection using linear interpolation
+        // lerp(start, end) => start + t * (end - start)
+        float t = dist0 / (total_dist);
+        Vec2 contact = contacts_in[0] + (contacts_in[1] - contacts_in[0]) * t;
+
+        contacts_out[num_out] = contact;
+        num_out++;
+    }
+
+    return num_out;
 }
 
 BoxShape::BoxShape(float width, float height) : width(width), height(height) {

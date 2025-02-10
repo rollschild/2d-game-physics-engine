@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "constraint.h"
 #include "contact.h"
+#include "graphics.h"
 #include "vec2.h"
 #include <iostream>
 #include <vector>
@@ -65,15 +66,21 @@ void World::update(float dt) {
             // a->is_colliding = false;
             // b->is_colliding = false;
 
-            Contact contact;
-            if (CollisionDetection::is_colliding(a, b, contact)) {
-                // create a new penetration constraint
-                // as soon as collision detected
-                PenetrationConstraint penetration(contact.a, contact.b,
-                                                  contact.start, contact.end,
-                                                  contact.normal);
-                pens.push_back(penetration);
-                contact.resolve_collision();
+            std::vector<Contact> contacts;
+            if (CollisionDetection::is_colliding(a, b, contacts)) {
+                for (auto contact : contacts) {
+                    Graphics::draw_circle(contact.start.x, contact.start.y, 5,
+                                          0.0, 0xFF00FFFF);
+                    Graphics::draw_circle(contact.end.x, contact.end.y, 2, 0.0,
+                                          0xFF00FFFF);
+                    // create a new penetration constraint
+                    // as soon as collision detected
+                    PenetrationConstraint penetration(
+                        contact.a, contact.b, contact.start, contact.end,
+                        contact.normal);
+                    pens.push_back(penetration);
+                    // contact.resolve_collision();
+                }
             }
         }
     }
@@ -115,6 +122,7 @@ void World::update(float dt) {
 }
 
 void World::check_collisions() {
+    /*
     for (size_t i = 0; i <= bodies.size() - 1; i++) {
         for (size_t j = i + 1; j < bodies.size(); j++) {
             Body *a = bodies[i];
@@ -128,6 +136,7 @@ void World::check_collisions() {
             }
         }
     }
+    */
 }
 
 void World::add_constraint(Constraint *constraint) {

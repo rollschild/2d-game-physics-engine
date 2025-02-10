@@ -3,10 +3,12 @@
 #include "graphics.h"
 #include "shape.h"
 #include "vec2.h"
+#include <iostream>
 #include <limits>
 #include <vector>
 
-bool CollisionDetection::is_colliding(Body *a, Body *b, Contact &contact) {
+bool CollisionDetection::is_colliding(Body *a, Body *b,
+                                      std::vector<Contact> &contacts) {
     bool a_is_circle = a->shape->get_type() == CIRCLE;
     bool b_is_circle = b->shape->get_type() == CIRCLE;
     bool a_is_polygon =
@@ -15,24 +17,24 @@ bool CollisionDetection::is_colliding(Body *a, Body *b, Contact &contact) {
         b->shape->get_type() == POLYGON || b->shape->get_type() == BOX;
 
     if (a_is_circle && b_is_circle) {
-        return is_colliding_circle_circle(a, b, contact);
+        return is_colliding_circle_circle(a, b, contacts);
     }
 
     if (a_is_polygon && b_is_polygon) {
-        return is_colliding_polygon_polygon(a, b, contact);
+        return is_colliding_polygon_polygon(a, b, contacts);
     }
 
     if (a_is_polygon && b_is_circle) {
-        return is_colliding_polygon_circle(a, b, contact);
+        return is_colliding_polygon_circle(a, b, contacts);
     }
     if (a_is_circle && b_is_polygon) {
-        return is_colliding_polygon_circle(b, a, contact);
+        return is_colliding_polygon_circle(b, a, contacts);
     }
     return false;
 }
 
-bool CollisionDetection::is_colliding_circle_circle(Body *a, Body *b,
-                                                    Contact &contact) {
+bool CollisionDetection::is_colliding_circle_circle(
+    Body *a, Body *b, std::vector<Contact> &contacts) {
     CircleShape *a_shape = (CircleShape *)a->shape;
     CircleShape *b_shape = (CircleShape *)b->shape;
 
@@ -45,6 +47,7 @@ bool CollisionDetection::is_colliding_circle_circle(Body *a, Body *b,
     }
 
     // compute Contact information
+    Contact contact;
     contact.a = a;
     contact.b = b;
     contact.normal = ab;
@@ -53,29 +56,111 @@ bool CollisionDetection::is_colliding_circle_circle(Body *a, Body *b,
     contact.end = a->position + contact.normal * a_shape->radius;
     contact.depth = (contact.end - contact.start).mag();
 
+    contacts.push_back(contact);
+
     return true;
 }
 
-bool CollisionDetection::is_colliding_polygon_polygon(Body *a, Body *b,
-                                                      Contact &contact) {
+bool CollisionDetection::is_colliding_polygon_polygon(
+    Body *a, Body *b, std::vector<Contact> &contacts) {
     // find separation between a and b, _and_ b and a
-    const PolygonShape *a_polygon_shape = (PolygonShape *)a->shape;
-    const PolygonShape *b_polygon_shape = (PolygonShape *)b->shape;
-    Vec2 a_axis, b_axis;
-    Vec2 a_point, b_point;
+    PolygonShape *a_polygon_shape = (PolygonShape *)a->shape;
+    PolygonShape *b_polygon_shape = (PolygonShape *)b->shape;
+    int a_index_ref_edge, b_index_ref_edge;
+    Vec2 a_support_point, b_support_point;
 
-    float ab_sep =
-        a_polygon_shape->find_min_separation(b_polygon_shape, a_axis, a_point);
+    // return the **index** of the reference edge, _NOT_ the edge itself
+
+    float ab_sep = a_polygon_shape->find_min_separation(
+        b_polygon_shape, a_index_ref_edge, a_support_point);
     if (ab_sep >= 0) {
         return false;
     }
 
-    float ba_sep =
-        b_polygon_shape->find_min_separation(a_polygon_shape, b_axis, b_point);
+    float ba_sep = b_polygon_shape->find_min_separation(
+        a_polygon_shape, b_index_ref_edge, b_support_point);
     if (ba_sep >= 0) {
         return false;
     }
 
+    PolygonShape *ref_shape;
+    PolygonShape *incident_shape;
+    int index_ref_edge;
+    if (ab_sep > ba_sep) {
+        // set "A" as ref shape
+        // set "B" as incident shape
+        ref_shape = a_polygon_shape;
+        incident_shape = b_polygon_shape;
+        index_ref_edge = a_index_ref_edge;
+    } else {
+        // set "B" as ref shape
+        // set "A" as incident shape
+        ref_shape = b_polygon_shape;
+        incident_shape = a_polygon_shape;
+        index_ref_edge = b_index_ref_edge;
+    }
+
+    // find the ref edge
+    Vec2 ref_edge = ref_shape->edge_at(index_ref_edge);
+    // find the incident edge
+    int incident_index = incident_shape->find_incident_edge(ref_edge.normal());
+
+    // perform clipping
+    // clip the incident edge based on the side planes of the reference edge
+    int incident_next_index =
+        (incident_index + 1) % incident_shape->world_vertices.size();
+    Vec2 v0 = incident_shape->world_vertices[incident_index];
+    Vec2 v1 = incident_shape->world_vertices[incident_next_index];
+
+    std::vector<Vec2> contact_points = {v0, v1};
+    std::vector<Vec2> clipped_points = contact_points;
+
+    for (size_t i = 0; i < ref_shape->world_vertices.size(); i++) {
+        if ((int)i == index_ref_edge)
+            continue;
+        Vec2 c0 = ref_shape->world_vertices[i];
+        Vec2 c1 =
+            ref_shape
+                ->world_vertices[(i + 1) % ref_shape->world_vertices.size()];
+        int num_clipped = ref_shape->clip_segment_to_line(
+            contact_points, clipped_points, c0, c1);
+        std::cout << "num_clipped: " << num_clipped << std::endl;
+        if (num_clipped < 2)
+            break;
+
+        // make next contact points the ones that were just clipped
+        contact_points = clipped_points;
+    }
+
+    auto vref = ref_shape->world_vertices[index_ref_edge];
+
+    // loop all clipped points, but only consider those where separation is
+    // negative (objects are penetrating each other)
+    for (auto &vclip : clipped_points) {
+        float separation = (vclip - vref).dot(ref_edge.normal());
+        if (separation <= 0) {
+            // negative separation means positive penetration
+            Contact contact;
+            contact.a = a;
+            contact.b = b;
+            contact.normal = ref_edge.normal();
+            contact.start = vclip;
+            contact.end = vclip + contact.normal * -separation;
+            if (ba_sep >= ab_sep) {
+                // the start-end points are always from a to b
+                std::swap(contact.start, contact.end);
+                // the collision normal is always from a to b
+                contact.normal *= -1.0;
+            }
+
+            contacts.push_back(contact);
+        }
+    }
+
+    return true;
+
+    /*
+    Contact contact;
     contact.a = a;
     contact.b = b;
     // always pointing from a to b
@@ -91,12 +176,12 @@ bool CollisionDetection::is_colliding_polygon_polygon(Body *a, Body *b,
         contact.end = b_point;
     }
 
-    return true;
+    contacts.push_back(contact);
+    */
 }
 
-bool CollisionDetection::is_colliding_polygon_circle(Body *polygon,
-                                                     Body *circle,
-                                                     Contact &contact) {
+bool CollisionDetection::is_colliding_polygon_circle(
+    Body *polygon, Body *circle, std::vector<Contact> &contacts) {
     const PolygonShape *polygon_shape = (PolygonShape *)polygon->shape;
     const CircleShape *circle_shape = (CircleShape *)circle->shape;
     const std::vector<Vec2> &polygon_vertices = polygon_shape->world_vertices;
@@ -138,6 +223,7 @@ bool CollisionDetection::is_colliding_polygon_circle(Body *polygon,
         }
     }
 
+    Contact contact;
     if (is_outside) {
         // check if inside region A
         Vec2 v1 = circle->position - min_curr_vertex;
@@ -206,5 +292,8 @@ bool CollisionDetection::is_colliding_polygon_circle(Body *polygon,
     // 0xFF00FFFF);
     // Graphics::draw_fill_circle(min_next_vertex.x, min_next_vertex.y, 5,
     // 0xFF00FFFF);
+
+    contacts.push_back(contact);
+
     return true;
 }

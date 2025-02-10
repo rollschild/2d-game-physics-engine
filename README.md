@@ -118,4 +118,10 @@
   - $JV + b = 0$
   - $J$ is the **Jacobian Matrix**
 - **Warm starting**
--
+- **Reference Edge**
+  - the original axis where the contact of best penetration was found
+- **Incident Edge**
+  - a face of the "other" rigid body that is opposing the reference edge
+  - the least aligned
+- **linear interpolation**
+  - $lerp(a, b, t) = a + t(b - a)$
