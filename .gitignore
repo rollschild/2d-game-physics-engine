@@ -2,7 +2,7 @@
 .cache/
 build/
 
-assets/._*
+assets/angrybirds/._*
 
 # Prerequisites
 *.d
