@@ -41,7 +41,7 @@ void AppConstraint::setup() {
 
     Body *floor =
         new Body(BoxShape(Graphics::width() - 50, 50), Graphics::width() / 2.0,
-                 Graphics::height() / 2.0 + 560, 0.0);
+                 Graphics::height() / 2.0 + 350, 0.0);
     floor->restitution = 0.1;
     Body *left_fence = new Body(BoxShape(50, Graphics::height() - 200), 0,
                                 Graphics::height() / 2.0 - 35, 0.0);

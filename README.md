@@ -1,5 +1,12 @@
 # 2D Game Physics Engine
 
+## Build & Run
+
+- `nix develop` to enable Nix
+- `cmake . -B build`
+- `cmake --build build`
+- `./build/src/main`
+
 ## Dependencies
 
 - `SDL`
@@ -125,3 +132,17 @@
   - the least aligned
 - **linear interpolation**
   - $lerp(a, b, t) = a + t(b - a)$
+
+## Optimization Techniques
+
+### Contact Caching
+
+- **manifold caching**
+- **warm starting**
+
+### Continuous Collision Detection
+
+- **tunneling**
+- **ray casting**
+  - cast a ray between two soon-to-be-colliding objects
+  - then get the **time of impact**
