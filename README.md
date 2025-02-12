@@ -1,5 +1,7 @@
 # 2D Game Physics Engine
 
+[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
+
 ## Build & Run
 
 - `nix develop` to enable Nix
